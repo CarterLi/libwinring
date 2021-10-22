@@ -16,15 +16,15 @@ EXTERN_C_START
 // Data structures
 //
 
-typedef struct _IORING_QUEUE_HEAD {
-    ULONG QueueIndex;
-    ULONG QueueCount;
+typedef struct _IORING_SUB_QUEUE_HEAD {
+    ULONG QueueHead;
+    ULONG QueueTail;
     ULONG64 Aligment;
-} IORING_QUEUE_HEAD, * PIORING_QUEUE_HEAD;
+} IORING_SUB_QUEUE_HEAD, * PIORING_SUB_QUEUE_HEAD;
 
 typedef struct _IORING_COMP_QUEUE_HEAD {
-    ULONG QueueIndex;
-    ULONG QueueCount;
+    ULONG QueueHead;
+    ULONG QueueTail;
 } IORING_COMP_QUEUE_HEAD, * PIORING_COMP_QUEUE_HEAD;
 
 typedef struct _NT_IORING_INFO {
@@ -34,7 +34,7 @@ typedef struct _NT_IORING_INFO {
     ULONG SubQueueSizeMask;
     ULONG CompletionQueueSize;
     ULONG CompQueueSizeMask;
-    PIORING_QUEUE_HEAD SubQueueBase;
+    PIORING_SUB_QUEUE_HEAD SubQueueBase;
     PIORING_COMP_QUEUE_HEAD CompQueueBase;
 } NT_IORING_INFO, * PNT_IORING_INFO;
 
@@ -78,7 +78,7 @@ typedef struct _HIORING {
 //
 // Function definitions
 //
-NTSTATUS
+__kernel_entry NTSTATUS NTAPI
 NtSubmitIoRing(
     _In_ HANDLE Handle,
     _In_ IORING_CREATE_REQUIRED_FLAGS Flags,
@@ -86,7 +86,7 @@ NtSubmitIoRing(
     _In_ PLARGE_INTEGER Timeout
 );
 
-NTSTATUS
+__kernel_entry NTSTATUS NTAPI
 NtCreateIoRing(
     _Out_ PHANDLE pIoRingHandle,
     _In_ ULONG CreateParametersSize,
@@ -95,13 +95,13 @@ NtCreateIoRing(
     _In_ NT_IORING_INFO* pRingInfo
 );
 
-NTSTATUS
+__kernel_entry NTSTATUS NTAPI
 NtQueryIoRingCapabilities(
     _In_ SIZE_T CapabilitiesLength,
     _Out_ PNT_IORING_CAPABILITIES Capabilities
 );
 
-NTSTATUS
+__kernel_entry NTSTATUS NTAPI
 NtSetInformationIoRing(
     _In_ HANDLE Handle,
     _In_ ULONG InformationClass,
@@ -109,3 +109,7 @@ NtSetInformationIoRing(
     _In_ PVOID IoRingInformation
 );
 EXTERN_C_END
+
+#ifdef _MSC_VER
+#   pragma comment(lib, "ntdll")
+#endif

@@ -6,8 +6,18 @@
 
 #include "winring.h"
 
+[[noreturn]]
+void panic() {
+    char buf[256] = "";
+    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        buf, (sizeof(buf) / sizeof(*buf)), NULL);
+    printf("ERROR: %s", buf);
+    exit(1);
+}
+
 int main() {
-    HANDLE hFile = CreateFileW(LR"(.\main.cpp)",
+    HANDLE hFile = CreateFileW(LR"(C:\Users\Carter\Downloads\Read me.txt)",
         GENERIC_READ,
         0,
         NULL,
@@ -15,33 +25,30 @@ int main() {
         FILE_ATTRIBUTE_NORMAL,
         NULL);
 
-    if (hFile == INVALID_HANDLE_VALUE) return 1;
+    if (hFile == INVALID_HANDLE_VALUE) panic();
 
     win_ring ring;
-    if (win_ring_queue_init(2, &ring) < 0) return 1;
-    char buf[32] = "";
+    if (win_ring_queue_init(1, &ring) < 0) panic();
+    char buf[128] = "";
 
-    win_ring_sqe* sqe;
-    for (unsigned i = 0; i < 2; ++i) {
-        sqe = win_ring_get_sqe(&ring);
-        win_ring_prep_read(sqe, hFile, buf + 8 * 0, 8, 0);
-        sqe->UserData = i * 2 + 1;
+    for (int x = 0; x < 8; ++x) {
+        win_ring_sqe* sqe;
+        for (unsigned i = 0; i < 4; ++i) {
+            sqe = win_ring_get_sqe(&ring);
+            win_ring_prep_read(sqe, hFile, buf + 8 * i, 8, 0);
+            sqe->UserData = i + x * 4;
+        }
 
-        sqe = win_ring_get_sqe(&ring);
-        win_ring_prep_read(sqe, hFile, buf + 8 * 1, 8, 0);
-        sqe->UserData = i * 2 + 2;
+        if (win_ring_submit_and_wait(&ring, 4) < 0) panic();
 
-        if (win_ring_submit_and_wait(&ring, 2) < 0) return 1;
+        unsigned head;
+        win_ring_cqe* cqe;
+        win_ring_for_each_cqe(&ring, head, cqe) {
+            if (cqe->ResultCode != STATUS_SUCCESS) return 1;
+            printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, buf);
+        }
+        win_ring_cq_clear(&ring);
     }
-
-    win_ring_cqe* cqe;
-    unsigned head;
-    win_ring_for_each_cqe(&ring, head, cqe) {
-        if (cqe->ResultCode != STATUS_SUCCESS) return 2;
-        printf("%u %p\n", (unsigned)cqe->Information, win_ring_cqe_get_data(cqe));
-        puts(buf);
-    }
-    win_ring_cq_advance(&ring, head);
 
     CloseHandle(hFile);
     win_ring_queue_exit(&ring);
