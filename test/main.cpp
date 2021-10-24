@@ -50,7 +50,7 @@ int kernelbase() {
     return 0;
 }
 
-int main() {
+int printDebugInfo() {
     if (win_ring_capabilities capabilities; win_ring_query_capabilities(&capabilities) < 0) {
         panic();
     } else {
@@ -89,7 +89,9 @@ int main() {
         offsetof(IORING_SUB_QUEUE_HEAD, QueueTail),
         offsetof(IORING_SUB_QUEUE_HEAD, Alignment)
     );
+}
 
+int main() {
     HANDLE hFile = CreateFileW(LR"(C:\Users\Carter\Downloads\Read me.txt)",
         GENERIC_READ,
         0,
