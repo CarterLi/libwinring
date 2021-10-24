@@ -16,16 +16,15 @@ enum IORING_SQE_FLAG {
     IORING_SQE_PREREGISTERED_BUFFER = 0b10,
 };
 
-inline int win_ring_check_kernel_error(_In_ NTSTATUS status) {
+static inline int win_ring_check_kernel_error(_In_ NTSTATUS status) {
     if (NT_SUCCESS(status)) return 0;
-    ULONG error = RtlNtStatusToDosError(status);
-    SetLastError(error);
+    SetLastError(RtlNtStatusToDosError(status));
     return -1;
 }
 
 // See https://github.com/axboe/liburing/blob/master/src/include/liburing.h to find some documents
 
-inline int win_ring_queue_init(_In_ unsigned entries, _Out_ struct win_ring* ring) {
+static inline int win_ring_queue_init(_In_ unsigned entries, _Out_ struct win_ring* ring) {
     IO_RING_STRUCTV1 ioringStruct = {
         .IoRingVersion = 1,
         .SubmissionQueueSize = entries,
@@ -33,26 +32,26 @@ inline int win_ring_queue_init(_In_ unsigned entries, _Out_ struct win_ring* rin
         .RequiredFlags = IORING_CREATE_REQUIRED_FLAGS_NONE,
         .AdvisoryFlags = IORING_CREATE_ADVISORY_FLAGS_NONE,
     };
-    NTSTATUS status = NtCreateIoRing(&ring->handle, sizeof ioringStruct, &ioringStruct, sizeof ring->info, &ring->info);
+    NTSTATUS status = NtCreateIoRing(&ring->handle, sizeof (ioringStruct), &ioringStruct, sizeof (ring->info), &ring->info);
     return win_ring_check_kernel_error(status);
 }
 
-inline int win_ring_queue_exit(_In_ struct win_ring* ring) {
+static inline int win_ring_queue_exit(_In_ struct win_ring* ring) {
     NTSTATUS status = NtClose(ring->handle);
     return win_ring_check_kernel_error(status);
 }
 
-inline int win_ring_query_capabilities(_Out_ win_ring_capabilities* capabilities) {
+static inline int win_ring_query_capabilities(_Out_ win_ring_capabilities* capabilities) {
     NTSTATUS status = NtQueryIoRingCapabilities(sizeof (*capabilities), capabilities);
     return win_ring_check_kernel_error(status);
 }
 
-inline void win_ring_prep_nop(_Inout_ win_ring_sqe* sqe) {
+static inline void win_ring_prep_nop(_Inout_ win_ring_sqe* sqe) {
     memset(sqe, 0, sizeof (*sqe));
     sqe->Opcode = IORING_OP_NOP;
 }
 
-inline void win_ring_prep_read(
+static inline void win_ring_prep_read(
     _Inout_ win_ring_sqe* sqe,
     _In_ IORING_HANDLE_UNION file,
     IORING_BUFFER_UNION buffer,
@@ -71,7 +70,7 @@ inline void win_ring_prep_read(
     // To write fixed buffer, IORING_SQE_PREREGISTERED_BUFFER flag must be set manually
 }
 
-inline void win_ring_prep_register_files(
+static inline void win_ring_prep_register_files(
     _Inout_ win_ring_sqe* sqe,
     _In_reads_(count) HANDLE const handles[],
     _In_ unsigned count
@@ -82,18 +81,18 @@ inline void win_ring_prep_register_files(
     sqe->BufferSize = count * sizeof (*handles);
 }
 
-inline void win_ring_prep_register_buffers(
+static inline void win_ring_prep_register_buffers(
     _Inout_ win_ring_sqe* sqe,
     _In_reads_(count) IORING_BUFFER_INFO const buffers[],
     _In_ unsigned count
 ) {
-    memset(sqe, 0, sizeof(*sqe));
+    memset(sqe, 0, sizeof (*sqe));
     sqe->Opcode = IORING_OP_REGISTER_BUFFERS;
     sqe->BuffersToRegister = buffers;
     sqe->BufferSize = count * sizeof (*buffers);
 }
 
-inline void win_ring_prep_cancel(
+static inline void win_ring_prep_cancel(
     _Inout_ win_ring_sqe* sqe,
     _In_ IORING_HANDLE_UNION file,
     IORING_OP_CODE opcodeToCancel,
@@ -110,7 +109,7 @@ inline void win_ring_prep_cancel(
 }
 
 // Doesn't work yet. The opcode is accepted, but won't run
-inline void win_ring_prep_write(
+static inline void win_ring_prep_write(
     _Inout_ win_ring_sqe* sqe,
     _In_ IORING_HANDLE_UNION file,
     _In_ IORING_BUFFER_UNION buffer,
@@ -128,24 +127,30 @@ inline void win_ring_prep_write(
     // See win_ring_prep_read for fixed file / buffer
 }
 
-inline void win_ring_sqe_set_flags(_Inout_ win_ring_sqe* sqe, _In_ ULONG flags) {
+static inline void win_ring_sqe_set_flags(_Inout_ win_ring_sqe* sqe, _In_ ULONG flags) {
     sqe->Flags = flags;
 }
 
 // TODO: What is key used for?
-inline void win_ring_sqe_set_key(_Inout_ win_ring_sqe* sqe, _In_ ULONG key) {
+static inline void win_ring_sqe_set_key(_Inout_ win_ring_sqe* sqe, _In_ ULONG key) {
     sqe->Key = key;
 }
 
-inline void win_ring_sqe_set_data(_Inout_ win_ring_sqe* sqe, _In_ PVOID userData) {
+static inline void win_ring_sqe_set_data(_Inout_ win_ring_sqe* sqe, _In_ PVOID userData) {
     sqe->UserData = (UINT_PTR)userData;
 }
 
-inline win_ring_sqe* win_ring_get_sqe(_Inout_ struct win_ring* ring) {
+static inline unsigned win_ring_sq_ready(_In_ struct win_ring* ring) {
+    return ring->info.SubQueueBase->QueueTail - ring->info.SubQueueBase->QueueHead;
+}
+
+static inline unsigned win_ring_sq_space_left(_In_ struct win_ring* ring) {
+    return ring->info.SubmissionQueueSize - win_ring_sq_ready(ring);
+}
+
+static inline win_ring_sqe* win_ring_get_sqe(_Inout_ struct win_ring* ring) {
     // Do we need atomic operations?
-    if (ring->info.SubQueueBase->QueueTail - ring->info.SubQueueBase->QueueHead == ring->info.SubmissionQueueSize) {
-        return NULL;
-    }
+    if (!win_ring_sq_space_left(ring)) return NULL;
 
     win_ring_sqe* sqe = (win_ring_sqe*)(
         (ULONG64)ring->info.SubQueueBase +
@@ -156,16 +161,16 @@ inline win_ring_sqe* win_ring_get_sqe(_Inout_ struct win_ring* ring) {
     return sqe;
 }
 
-inline int win_ring_submit_and_wait_timeout(_Inout_ struct win_ring* ring, _In_ ULONG numberOfEntries, _In_ LONGLONG timeout) {
+static inline int win_ring_submit_and_wait_timeout(_Inout_ struct win_ring* ring, _In_ ULONG numberOfEntries, _In_ LONGLONG timeout) {
     NTSTATUS status = NtSubmitIoRing(ring->handle, IORING_CREATE_REQUIRED_FLAGS_NONE, numberOfEntries, &timeout);
     return win_ring_check_kernel_error(status);
 }
 
-inline int win_ring_submit_and_wait(_Inout_ struct win_ring* ring, _In_ ULONG numberOfEntries) {
+static inline int win_ring_submit_and_wait(_Inout_ struct win_ring* ring, _In_ ULONG numberOfEntries) {
     return win_ring_submit_and_wait_timeout(ring, numberOfEntries, INFINITE);
 }
 
-inline int win_ring_submit(_Inout_ struct win_ring* ring) {
+static inline int win_ring_submit(_Inout_ struct win_ring* ring) {
     NTSTATUS status = NtSubmitIoRing(ring->handle, IORING_CREATE_REQUIRED_FLAGS_NONE, 0, NULL);
     return win_ring_check_kernel_error(status);
 }
@@ -179,28 +184,43 @@ inline int win_ring_submit(_Inout_ struct win_ring* ring) {
     ++head \
 )
 
-inline int win_ring_peek_cqe(_In_ struct win_ring* ring, _Inout_ win_ring_cqe** cqePtr) {
-    if (ring->info.CompQueueBase->QueueHead >= ring->info.CompQueueBase->QueueTail) return -1;
-    *cqePtr = (win_ring_cqe*)(
-        (ULONG64)ring->info.CompQueueBase +
-        sizeof (IORING_COMP_QUEUE_HEAD) +
-        (ring->info.CompQueueBase->QueueHead & ring->info.CompQueueSizeMask) * sizeof (NT_IORING_CQE)
-        );
-    return 0;
+static inline unsigned win_ring_cq_ready(_In_ struct win_ring* ring) {
+    return ring->info.CompQueueBase->QueueTail - ring->info.CompQueueBase->QueueHead;
 }
 
-inline void* win_ring_cqe_get_data(_In_ win_ring_cqe* cqe) {
+static inline unsigned win_ring_cq_space_left(_In_ struct win_ring* ring) {
+    return ring->info.CompletionQueueSize - win_ring_cq_ready(ring);
+}
+
+static inline win_ring_cqe* win_ring_peek_cqe(_In_ struct win_ring* ring) {
+    ULONG head;
+    win_ring_cqe* cqe;
+    win_ring_for_each_cqe(ring, head, cqe) {
+        return cqe;
+    }
+    return NULL;
+}
+
+static inline win_ring_cqe* win_ring_wait_cqe(_In_ struct win_ring* ring) {
+    win_ring_cqe* cqe = win_ring_peek_cqe(ring);
+    if (cqe) return cqe;
+
+    if (win_ring_submit_and_wait(ring, 1) < 0) return NULL;
+    return win_ring_peek_cqe(ring);
+}
+
+static inline void* win_ring_cqe_get_data(_In_ win_ring_cqe* cqe) {
     return (void*)cqe->UserData;
 }
 
-inline void win_ring_cq_clear(_Inout_ struct win_ring* ring) {
+static inline void win_ring_cq_clear(_Inout_ struct win_ring* ring) {
     ring->info.CompQueueBase->QueueHead = ring->info.CompQueueBase->QueueTail;
 }
 
-inline void win_ring_cq_advance(_Inout_ struct win_ring* ring, _In_ unsigned count) {
+static inline void win_ring_cq_advance(_Inout_ struct win_ring* ring, _In_ unsigned count) {
     ring->info.CompQueueBase->QueueHead += count;
 }
 
-inline void win_ring_cqe_seen(_Inout_ struct win_ring* ring, _In_ win_ring_cqe* cqe) {
+static inline void win_ring_cqe_seen(_Inout_ struct win_ring* ring, _In_ win_ring_cqe* cqe) {
     if (cqe) win_ring_cq_advance(ring, 1);
 }

@@ -10,8 +10,8 @@
 #include <winternl.h>
 #include <intrin.h>
 
-
 EXTERN_C_START
+
 //
 // Data structures
 //
@@ -62,7 +62,6 @@ union IORING_BUFFER_UNION {
     UINT64 Address; // See above
     IORING_REGISTERED_BUFFER IndexAndOffset;
 };
-
 
 typedef struct _NT_IORING_SQE {
     ULONG Opcode;
@@ -144,6 +143,7 @@ NtSetInformationIoRing(
     _In_ ULONG InformationLength,
     _In_ PVOID IoRingInformation
 );
+
 EXTERN_C_END
 
 #ifdef _MSC_VER
