@@ -35,11 +35,11 @@ typedef struct _NT_IORING_INFO {
     ULONG CompQueueSizeMask;
     union {
         PIORING_SUB_QUEUE_HEAD SubQueueBase;
-        UINT64 PAD_FOR_X86;
+        UINT64 PadX86_SubQueueBase;
     };
     union {
         PIORING_COMP_QUEUE_HEAD CompQueueBase;
-        UINT64 PAD_FOR_X86;
+        UINT64 PadX86_CompQueueBase;
     };
 } NT_IORING_INFO, * PNT_IORING_INFO;
 
@@ -68,7 +68,7 @@ typedef struct _NT_IORING_SQE {
     ULONG Flags;
     union {
         IORING_HANDLE_UNION File;
-        UINT64 PAD_FOR_X86;
+        UINT64 PadX86_File;
     };
     UINT64 FileOffset;
     union {
@@ -76,7 +76,7 @@ typedef struct _NT_IORING_SQE {
         IORING_OP_CODE OpcodeToCancel;
         const HANDLE* HandlesToRegister;
         const IORING_BUFFER_INFO* BuffersToRegister;
-        UINT64 PAD_FOR_X86;
+        UINT64 PadX86_Buffer;
     };
     ULONG BufferSize;
     ULONG BufferOffset;
@@ -89,7 +89,7 @@ typedef struct _NT_IORING_CQE {
     UINT64 UserData;
     union {
         HRESULT ResultCode;
-        UINT64 PAD_FOR_X86;
+        UINT64 PadX86_ResultCode;
     };
     UINT64 Information;
 } NT_IORING_CQE, * PNT_IORING_CQE;
@@ -113,7 +113,7 @@ typedef struct _NT_IORING_CAPABILITIES {
 //
 // Function definitions
 //
-__kernel_entry NTSTATUS NTAPI
+__kernel_entry extern NTSTATUS NTAPI
 NtSubmitIoRing(
     _In_ HANDLE Handle,
     _In_ IORING_CREATE_REQUIRED_FLAGS Flags,
@@ -121,7 +121,7 @@ NtSubmitIoRing(
     _In_opt_ PLONGLONG Timeout
 );
 
-__kernel_entry NTSTATUS NTAPI
+__kernel_entry extern NTSTATUS NTAPI
 NtCreateIoRing(
     _Out_ PHANDLE pIoRingHandle,
     _In_ ULONG CreateParametersSize,
@@ -130,13 +130,13 @@ NtCreateIoRing(
     _In_ NT_IORING_INFO* pRingInfo
 );
 
-__kernel_entry NTSTATUS NTAPI
+__kernel_entry extern NTSTATUS NTAPI
 NtQueryIoRingCapabilities(
     _In_ SIZE_T CapabilitiesLength,
     _Out_ PNT_IORING_CAPABILITIES Capabilities
 );
 
-__kernel_entry NTSTATUS NTAPI
+__kernel_entry extern NTSTATUS NTAPI
 NtSetInformationIoRing(
     _In_ HANDLE Handle,
     _In_ ULONG InformationClass,

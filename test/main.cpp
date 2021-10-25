@@ -4,7 +4,7 @@
 #include <memory>
 #include <cstddef>
 
-#include "winring.h"
+#include "libwinring.h"
 #pragma comment(lib, "onecoreuap")
 
 [[noreturn]]
@@ -118,7 +118,7 @@ int main() {
         unsigned head;
         win_ring_cqe* cqe;
         win_ring_for_each_cqe(&ring, head, cqe) {
-            if (cqe->ResultCode != S_OK) return 1;
+            if (!SUCCEEDED(cqe->ResultCode)) return 1;
             printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, "register");
         }
         win_ring_cq_clear(&ring);
@@ -133,7 +133,7 @@ int main() {
         unsigned head;
         win_ring_cqe* cqe;
         win_ring_for_each_cqe(&ring, head, cqe) {
-            if (cqe->ResultCode != S_OK) return 1;
+            if (!SUCCEEDED(cqe->ResultCode)) return 1;
             printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, "register");
         }
         win_ring_cq_clear(&ring);
@@ -154,7 +154,7 @@ int main() {
         unsigned head;
         win_ring_cqe* cqe;
         win_ring_for_each_cqe(&ring, head, cqe) {
-            if (cqe->ResultCode != S_OK) return 1;
+            if (!SUCCEEDED(cqe->ResultCode)) return 1;
             printf("%u %llu %s\n", (unsigned)cqe->Information, (ULONG64)cqe->UserData, buf);
         }
         win_ring_cq_clear(&ring);
