@@ -178,7 +178,7 @@ static inline int win_ring_submit(_Inout_ struct win_ring* ring) {
 // Do we need atomic operations?
 #define win_ring_for_each_cqe(ring, head, cqe) for ( \
     head = (ring)->info.CompQueueBase->QueueHead; \
-    (cqe = head < (ring)->info.CompQueueBase->QueueTail \
+    (cqe = head != (ring)->info.CompQueueBase->QueueTail \
         ? (win_ring_cqe*)((ULONG64)(ring)->info.CompQueueBase + sizeof (IORING_COMP_QUEUE_HEAD) + (head & (ring)->info.CompQueueSizeMask) * sizeof (NT_IORING_CQE)) \
         : NULL); \
     ++head \
