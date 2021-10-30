@@ -50,7 +50,7 @@ int kernelbase() {
     return 0;
 }
 
-int printDebugInfo() {
+void printDebugInfo() {
     if (win_ring_capabilities capabilities; win_ring_query_capabilities(&capabilities) < 0) {
         panic();
     } else {

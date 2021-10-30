@@ -18,7 +18,7 @@ EXTERN_C_START
 typedef struct _IORING_SUB_QUEUE_HEAD {
     ULONG QueueHead;
     ULONG QueueTail;
-    ULONG64 Alignment;
+    ULONG64 Padding;
 } IORING_SUB_QUEUE_HEAD, * PIORING_SUB_QUEUE_HEAD;
 
 typedef struct _IORING_COMP_QUEUE_HEAD {
