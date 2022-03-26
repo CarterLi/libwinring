@@ -58,8 +58,8 @@ static inline void win_ring_prep_read(
     _Inout_ win_ring_sqe* sqe,
     _In_ NT_IORING_HANDLEREF file,
     NT_IORING_BUFFERREF buffer,
-    _In_ UINT32 sizeToRead,
-    _In_ UINT64 fileOffset,
+    _In_ uint32_t sizeToRead,
+    _In_ uint64_t fileOffset,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
@@ -127,8 +127,8 @@ static inline void win_ring_prep_write(
     _Inout_ win_ring_sqe* sqe,
     _In_ NT_IORING_HANDLEREF file,
     _In_ NT_IORING_BUFFERREF buffer,
-    _In_ UINT32 sizeToWrite,
-    _In_ UINT64 fileOffset,
+    _In_ uint32_t sizeToWrite,
+    _In_ uint64_t fileOffset,
     _In_ NT_WRITE_FLAGS flags,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
@@ -168,20 +168,20 @@ static inline void win_ring_sqe_set_data(_Inout_ win_ring_sqe* sqe, _In_ void* u
 }
 
 static inline unsigned win_ring_sq_ready(_In_ struct win_ring* ring) {
-    return ring->info.SubQueueBase->Tail - ring->info.SubQueueBase->Head;
+    return ring->info.SubmissionQueue->Tail - ring->info.SubmissionQueue->Head;
 }
 
 static inline unsigned win_ring_sq_space_left(_In_ struct win_ring* ring) {
-    return ring->info.SubQueueSize - win_ring_sq_ready(ring);
+    return ring->info.SubmissionQueueSize - win_ring_sq_ready(ring);
 }
 
 static inline win_ring_sqe* win_ring_get_sqe(_Inout_ struct win_ring* ring) {
     // Do we need atomic operations?
     if (!win_ring_sq_space_left(ring)) return NULL;
-    win_ring_sqe* sqe = &ring->info.SubQueueBase->Entries[
-        ring->info.SubQueueBase->Tail & ring->info.SubQueueSizeMask
+    win_ring_sqe* sqe = &ring->info.SubmissionQueue->Entries[
+        ring->info.SubmissionQueue->Tail & ring->info.SubmissionQueueRingMask
     ];
-    ++ring->info.SubQueueBase->Tail;
+    ++ring->info.SubmissionQueue->Tail;
     return sqe;
 }
 
@@ -201,19 +201,19 @@ static inline int win_ring_submit(_Inout_ struct win_ring* ring) {
 
 // Do we need atomic operations?
 #define win_ring_for_each_cqe(ring, head, cqe) for ( \
-    head = (ring)->info.CompQueueBase->Head; \
-    (cqe = head != (ring)->info.CompQueueBase->Tail \
-        ? &(ring)->info.CompQueueBase->Entries[head & (ring)->info.CompQueueSizeMask] \
+    head = (ring)->info.CompletionQueue->Head; \
+    (cqe = head != (ring)->info.CompletionQueue->Tail \
+        ? &(ring)->info.CompletionQueue->Entries[head & (ring)->info.CompletionQueueRingMask] \
         : NULL); \
     ++head \
 )
 
 static inline unsigned win_ring_cq_ready(_In_ struct win_ring* ring) {
-    return ring->info.CompQueueBase->Tail - ring->info.CompQueueBase->Head;
+    return ring->info.CompletionQueue->Tail - ring->info.CompletionQueue->Head;
 }
 
 static inline unsigned win_ring_cq_space_left(_In_ struct win_ring* ring) {
-    return ring->info.CompQueueSize - win_ring_cq_ready(ring);
+    return ring->info.CompletionQueueSize - win_ring_cq_ready(ring);
 }
 
 static inline win_ring_cqe* win_ring_peek_cqe(_In_ struct win_ring* ring) {
@@ -238,11 +238,11 @@ static inline void* win_ring_cqe_get_data(_In_ win_ring_cqe* cqe) {
 }
 
 static inline void win_ring_cq_clear(_Inout_ struct win_ring* ring) {
-    ring->info.CompQueueBase->Head = ring->info.CompQueueBase->Tail;
+    ring->info.CompletionQueue->Head = ring->info.CompletionQueue->Tail;
 }
 
 static inline void win_ring_cq_advance(_Inout_ struct win_ring* ring, _In_ unsigned count) {
-    ring->info.CompQueueBase->Head += count;
+    ring->info.CompletionQueue->Head += count;
 }
 
 static inline void win_ring_cqe_seen(_Inout_ struct win_ring* ring, _In_ win_ring_cqe* cqe) {

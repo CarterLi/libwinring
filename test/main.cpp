@@ -24,8 +24,8 @@ void printDebugInfo() {
     if (win_ring_capabilities capabilities; win_ring_query_capabilities(&capabilities) < 0) {
         panic();
     } else {
-        printf("Version: %d\n", (int)capabilities.Version);
-        printf("Max opcode: %d\n", capabilities.MaxOpcode);
+        printf("IoRing Version: %d\n", (int)capabilities.IoRingVersion);
+        printf("Max opcode: %d\n", capabilities.MaxOpCode);
         printf("Supported flags: %x\n\n", capabilities.FlagsSupported);
     }
 }
@@ -78,7 +78,7 @@ int testRead() {
         win_ring_cq_clear(&ring);
     }
 
-    for (int x = 0; x < 16; ++x) {
+    for (int x = 0; x < 2; ++x) {
         sqe = win_ring_get_sqe(&ring);
         if (x & 1) {
             win_ring_prep_read(
