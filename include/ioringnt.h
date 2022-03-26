@@ -6,11 +6,23 @@
 #include <stdint.h>
 #include <ntstatus.h>
 #define WIN32_NO_STATUS
-#define NOMINMAX
+#ifndef NOMINMAX
+#   define NOMINMAX
+#endif
 #include <Windows.h>
+
+#ifndef EXTERN_C_START
+#   define EXTERN_C_START extern "C" {
+#endif
+#ifndef EXTERN_C_END
+#   define EXTERN_C_END }
+#endif
 
 EXTERN_C_START
 
+//
+// Data structures
+//
 typedef enum _IORING_OP_CODE
 {
     IORING_OP_NOP = 0,
@@ -295,6 +307,9 @@ typedef struct _NT_IORING_CAPABILITIES {
 //
 // Function definitions
 //
+#ifndef __kernel_entry
+#   define __kernel_entry
+#endif
 __kernel_entry extern NTSTATUS NTAPI
 NtSubmitIoRing(
     _In_ HANDLE Handle,

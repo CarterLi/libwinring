@@ -3,6 +3,8 @@
 #include "ioringnt.h"
 #include <winternl.h>
 
+EXTERN_C_START
+
 struct win_ring {
     NT_IORING_INFO info;
     HANDLE handle;
@@ -246,3 +248,5 @@ static inline void win_ring_cq_advance(_Inout_ struct win_ring* ring, _In_ unsig
 static inline void win_ring_cqe_seen(_Inout_ struct win_ring* ring, _In_ win_ring_cqe* cqe) {
     if (cqe) win_ring_cq_advance(ring, 1);
 }
+
+EXTERN_C_END
