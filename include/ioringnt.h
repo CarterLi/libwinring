@@ -16,10 +16,14 @@
 #endif
 
 #ifndef EXTERN_C_START
-#   define EXTERN_C_START extern "C" {
+#   ifdef __cplusplus
+#       define EXTERN_C_START extern "C" {
+#   endif
 #endif
 #ifndef EXTERN_C_END
-#   define EXTERN_C_END }
+#   ifdef __cplusplus
+#       define EXTERN_C_END }
+#   endif
 #endif
 
 EXTERN_C_START
@@ -152,7 +156,6 @@ typedef struct _IORING_BUFFER_INFO {
     /* 0x0000 */ uint64_t PadX86_Address;
   }; /* size: 0x0008 */
   /* 0x0008 */ uint32_t Length;
-  /* 0x000c */ int32_t __PADDING__[1];
 } IORING_BUFFER_INFO, PIORING_BUFFER_INFO; /* size: 0x0010 */
 static_assert(sizeof(IORING_BUFFER_INFO) == 0x0010);
 
@@ -171,7 +174,6 @@ static_assert(sizeof(NT_IORING_OP_REGISTER_BUFFERS) == 0x0018);
 typedef struct _NT_IORING_OP_CANCEL
 {
     /* 0x0000 */ NT_IORING_OP_FLAGS CommonOpFlags;
-    /* 0x0004 */ long Padding_62;
     /* 0x0008 */ NT_IORING_HANDLEREF File;
     /* 0x0010 */ uint64_t CancelId;
 } NT_IORING_OP_CANCEL, * PNT_IORING_OP_CANCEL; /* size: 0x0018 */
@@ -271,7 +273,6 @@ typedef struct _NT_IORING_SUBMISSION_QUEUE
     /* 0x0000 */ uint32_t Head;
     /* 0x0004 */ uint32_t Tail;
     /* 0x0008 */ NT_IORING_SQ_FLAGS Flags;
-    /* 0x000c */ long Padding_215;
     /* 0x0010 */ NT_IORING_SQE Entries[];
 } NT_IORING_SUBMISSION_QUEUE, * PNT_IORING_SUBMISSION_QUEUE; /* size: 0x0010 */
 static_assert (sizeof (NT_IORING_SUBMISSION_QUEUE) == 0x0010);
@@ -304,7 +305,6 @@ typedef struct _NT_IORING_INFO
     /* 0x0010 */ uint32_t SubmissionQueueRingMask;
     /* 0x0014 */ uint32_t CompletionQueueSize;
     /* 0x0018 */ uint32_t CompletionQueueRingMask;
-    /* 0x001c */ long Padding_273;
     union {
         /* 0x0020 */ NT_IORING_SUBMISSION_QUEUE* SubmissionQueue;
         /* 0x0020 */ uint64_t PadX86_SubmissionQueue;
