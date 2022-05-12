@@ -249,4 +249,9 @@ static inline void win_ring_cqe_seen(_Inout_ struct win_ring* ring, _In_ win_rin
     if (cqe) win_ring_cq_advance(ring, 1);
 }
 
+static inline int win_ring_register_event(_Inout_ struct win_ring* ring, _In_ HANDLE event) {
+    NTSTATUS status = NtSetInformationIoRing(ring->handle, IoRingRegisterUserCompletionEventClass, sizeof event, &event);
+    return win_ring_check_kernel_error(status);
+}
+
 EXTERN_C_END

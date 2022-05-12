@@ -151,13 +151,11 @@ typedef struct _NT_IORING_REG_BUFFERS_FLAGS
 static_assert(sizeof(NT_IORING_REG_BUFFERS_FLAGS) == 0x0008);
 
 typedef struct _IORING_BUFFER_INFO {
-  union {
-    /* 0x0000 */ void* Address;
-    /* 0x0000 */ uint64_t PadX86_Address;
-  }; /* size: 0x0008 */
-  /* 0x0008 */ uint32_t Length;
-} IORING_BUFFER_INFO, PIORING_BUFFER_INFO; /* size: 0x0010 */
-static_assert(sizeof(IORING_BUFFER_INFO) == 0x0010);
+    // According to https://windows-internals.com/one-year-to-i-o-ring-what-changed/
+    // Address here should not be padded
+    void* Address;
+    uint32_t Length;
+} IORING_BUFFER_INFO, PIORING_BUFFER_INFO;
 
 typedef struct _NT_IORING_OP_REGISTER_BUFFERS
 {
@@ -331,6 +329,12 @@ typedef struct _NT_IORING_CAPABILITIES {
     uint32_t CompletionQueueSize;
 } NT_IORING_CAPABILITIES, * PNT_IORING_CAPABILITIES;
 
+typedef enum _NT_IORING_INFO_CLASS {
+    IoRingInvalid = 0,
+    IoRingRegisterUserCompletionEventClass = 1,
+} NT_IORING_INFO_CLASS;
+static_assert (sizeof (NT_IORING_INFO_CLASS) == 4);
+
 //
 // Function definitions
 //
@@ -341,7 +345,7 @@ __kernel_entry extern NTSTATUS NTAPI
 NtSubmitIoRing(
     _In_ HANDLE Handle,
     _In_ NT_IORING_CREATE_REQUIRED_FLAGS Flags,
-    _In_ uint32_t EntryCount,
+    _In_ uint32_t WaitOperations,
     _In_opt_ uint64_t * Timeout
 );
 
@@ -363,7 +367,7 @@ NtQueryIoRingCapabilities(
 __kernel_entry extern NTSTATUS NTAPI
 NtSetInformationIoRing(
     _In_ HANDLE Handle,
-    _In_ uint32_t InformationClass,
+    _In_ NT_IORING_INFO_CLASS InformationClass,
     _In_ uint32_t InformationLength,
     _In_ void * IoRingInformation
 );
