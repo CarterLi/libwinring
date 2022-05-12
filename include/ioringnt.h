@@ -151,7 +151,7 @@ typedef struct _NT_IORING_REG_BUFFERS_FLAGS
 static_assert(sizeof(NT_IORING_REG_BUFFERS_FLAGS) == 0x0008);
 
 typedef struct _IORING_BUFFER_INFO {
-    // According to https://windows-internals.com/one-year-to-i-o-ring-what-changed/
+    // According to https://windows-internals.com/one-year-to-i-o-ring-what-changed/ And <ntioring_x.h>
     // Address here should not be padded
     void* Address;
     uint32_t Length;
@@ -321,10 +321,18 @@ typedef struct _NT_IORING_STRUCTV1 {
     NT_IORING_CREATE_FLAGS Flags;
 } NT_IORING_STRUCTV1, * PNT_IORING_STRUCTV1;
 
+// Code used from <ntioring_x.h>
+typedef enum _IORING_FEATURE_FLAGS {
+  IORING_FEATURE_FLAGS_NONE = 0,
+  IORING_FEATURE_UM_EMULATION = 1,
+  IORING_FEATURE_SET_COMPLETION_EVENT = 2,
+} IORING_FEATURE_FLAGS;
+DEFINE_ENUM_FLAG_OPERATORS(IORING_FEATURE_FLAGS)
+
 typedef struct _NT_IORING_CAPABILITIES {
     IORING_VERSION IoRingVersion;
     IORING_OP_CODE MaxOpCode;
-    NT_IORING_CREATE_REQUIRED_FLAGS FlagsSupported;
+    IORING_FEATURE_FLAGS FlagsSupported;
     uint32_t SubmissionQueueSize;
     uint32_t CompletionQueueSize;
 } NT_IORING_CAPABILITIES, * PNT_IORING_CAPABILITIES;
