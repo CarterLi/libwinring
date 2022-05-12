@@ -10,28 +10,26 @@
 
 ## Bench (output format adjusted, for easier to compare)
 
+`test/bench.cpp`
+
 ### Windows IoRing
 
-test/bench.cpp
-
-Win11 22000.282, VS2022 preview 6
+Win11 22H2 (22616.100), gcc version 12.1.1 20220510 (GCC with MCF thread model, built by LH_Mouse)
 
 ```
-plain IORING_OP_NOP:  3061447800
-this_thread::yield:    574536900
-pause:                 415972400
+plain IORING_OP_NOP:    2491105000
+this_thread::yield:      708081000
+pause:                   398207000
 ```
 
 ### Compare to Linux io_uring
 
-https://github.com/CarterLi/liburing4cpp/blob/master/io_uring/bench.cpp
-
-Linux MSI 5.10.60.1-microsoft-standard-WSL2, g++ 11.1.0
+Linux MSIGE76 5.10.102.1-microsoft-standard-WSL2, gcc version 12.1.0 (GCC)
 
 ```
-plain IORING_OP_NOP:  1528107815
-this_thread::yield:    974317628
-pause:                 422511241
+plain IORING_OP_NOP:    1427442787
+this_thread::yield:     1001010416
+pause:                   390992667
 ```
 
 ## License
