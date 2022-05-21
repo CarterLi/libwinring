@@ -4,6 +4,7 @@
 // Modified by Carter Li
 
 #include <stdint.h>
+#include <assert.h>
 #include <ntstatus.h>
 #define WIN32_NO_STATUS
 #ifndef NOMINMAX
@@ -11,22 +12,9 @@
 #endif
 #include <Windows.h>
 
-#ifndef __cplusplus
-#   define static_assert(a)
+#ifdef __cplusplus
+extern "C" {
 #endif
-
-#ifndef EXTERN_C_START
-#   ifdef __cplusplus
-#       define EXTERN_C_START extern "C" {
-#   endif
-#endif
-#ifndef EXTERN_C_END
-#   ifdef __cplusplus
-#       define EXTERN_C_END }
-#   endif
-#endif
-
-EXTERN_C_START
 
 //
 // Data structures
@@ -60,7 +48,7 @@ typedef union _NT_IORING_HANDLEREF
     /* 0x0000 */ /* HANDLE */ uint64_t Handle;
     /* 0x0000 */ /* uint32_t */ uint64_t HandleIndex;
 } NT_IORING_HANDLEREF, * PNT_IORING_HANDLEREF; /* size: 0x0008 */
-static_assert(sizeof(NT_IORING_HANDLEREF) == 0x0008);
+static_assert(sizeof(NT_IORING_HANDLEREF) == 0x0008, "");
 
 typedef enum _NT_IORING_SQE_FLAGS
 {
@@ -74,7 +62,7 @@ typedef struct _IORING_REGISTERED_BUFFER
     /* 0x0000 */ uint32_t BufferIndex;
     /* 0x0004 */ uint32_t Offset;
 } IORING_REGISTERED_BUFFER, PIORING_REGISTERED_BUFFER; /* size: 0x0008 */
-static_assert(sizeof(IORING_REGISTERED_BUFFER) == 0x0008);
+static_assert(sizeof(IORING_REGISTERED_BUFFER) == 0x0008, "");
 
 typedef union _NT_IORING_BUFFERREF
 {
@@ -86,7 +74,7 @@ typedef union _NT_IORING_BUFFERREF
     /* 0x0000 */ /* void* */ uint64_t Address;
     /* 0x0000 */ IORING_REGISTERED_BUFFER FixedBuffer;
 } NT_IORING_BUFFERREF, * PNT_IORING_BUFFERREF; /* size: 0x0008 */
-static_assert(sizeof(NT_IORING_BUFFERREF) == 0x0008);
+static_assert(sizeof(NT_IORING_BUFFERREF) == 0x0008, "");
 
 typedef struct _NT_IORING_OP_READ
 {
@@ -98,7 +86,7 @@ typedef struct _NT_IORING_OP_READ
     /* 0x0020 */ uint32_t Length;
     /* 0x0024 */ uint32_t Key;
 } NT_IORING_OP_READ, * PNT_IORING_OP_READ; /* size: 0x0028 */
-static_assert(sizeof(NT_IORING_OP_READ) == 0x0028);
+static_assert(sizeof(NT_IORING_OP_READ) == 0x0028, "");
 
 typedef enum _NT_IORING_REG_FILES_REQ_FLAGS
 {
@@ -117,7 +105,7 @@ typedef struct _NT_IORING_REG_FILES_FLAGS
     /* 0x0000 */ NT_IORING_REG_FILES_REQ_FLAGS Required;
     /* 0x0004 */ NT_IORING_REG_FILES_ADV_FLAGS Advisory;
 } NT_IORING_REG_FILES_FLAGS, * PNT_IORING_REG_FILES_FLAGS; /* size: 0x0008 */
-static_assert(sizeof(NT_IORING_REG_FILES_FLAGS) == 0x0008);
+static_assert(sizeof(NT_IORING_REG_FILES_FLAGS) == 0x0008, "");
 
 typedef struct _NT_IORING_OP_REGISTER_FILES
 {
@@ -129,7 +117,7 @@ typedef struct _NT_IORING_OP_REGISTER_FILES
       /* 0x0010 */ uint64_t PadX86_Handles;
     }; /* size: 0x0008 */
 } NT_IORING_OP_REGISTER_FILES, * PNT_IORING_OP_REGISTER_FILES; /* size: 0x0018 */
-static_assert(sizeof(NT_IORING_OP_REGISTER_FILES) == 0x0018);
+static_assert(sizeof(NT_IORING_OP_REGISTER_FILES) == 0x0018, "");
 
 typedef enum _NT_IORING_REG_BUFFERS_REQ_FLAGS
 {
@@ -148,7 +136,7 @@ typedef struct _NT_IORING_REG_BUFFERS_FLAGS
     /* 0x0000 */ NT_IORING_REG_BUFFERS_REQ_FLAGS Required;
     /* 0x0004 */ NT_IORING_REG_BUFFERS_ADV_FLAGS Advisory;
 } NT_IORING_REG_BUFFERS_FLAGS, * PNT_IORING_REG_BUFFERS_FLAGS; /* size: 0x0008 */
-static_assert(sizeof(NT_IORING_REG_BUFFERS_FLAGS) == 0x0008);
+static_assert(sizeof(NT_IORING_REG_BUFFERS_FLAGS) == 0x0008, "");
 
 typedef struct _IORING_BUFFER_INFO {
     // According to https://windows-internals.com/one-year-to-i-o-ring-what-changed/ And <ntioring_x.h>
@@ -167,7 +155,7 @@ typedef struct _NT_IORING_OP_REGISTER_BUFFERS
       /* 0x0010 */ uint64_t PadX86_Buffers;
     }; /* size: 0x0008 */
 } NT_IORING_OP_REGISTER_BUFFERS, * PNT_IORING_OP_REGISTER_BUFFERS; /* size: 0x0018 */
-static_assert(sizeof(NT_IORING_OP_REGISTER_BUFFERS) == 0x0018);
+static_assert(sizeof(NT_IORING_OP_REGISTER_BUFFERS) == 0x0018, "");
 
 typedef struct _NT_IORING_OP_CANCEL
 {
@@ -175,7 +163,7 @@ typedef struct _NT_IORING_OP_CANCEL
     /* 0x0008 */ NT_IORING_HANDLEREF File;
     /* 0x0010 */ uint64_t CancelId;
 } NT_IORING_OP_CANCEL, * PNT_IORING_OP_CANCEL; /* size: 0x0018 */
-static_assert(sizeof(NT_IORING_OP_CANCEL) == 0x0018);
+static_assert(sizeof(NT_IORING_OP_CANCEL) == 0x0018, "");
 
 typedef enum _NT_WRITE_FLAGS
 {
@@ -194,7 +182,7 @@ typedef struct _NT_IORING_OP_WRITE
     /* 0x0020 */ uint32_t Length;
     /* 0x0024 */ uint32_t Key;
 } NT_IORING_OP_WRITE, * PNT_IORING_OP_WRITE; /* size: 0x0028 */
-static_assert(sizeof(NT_IORING_OP_WRITE) == 0x0028);
+static_assert(sizeof(NT_IORING_OP_WRITE) == 0x0028, "");
 
 typedef struct _NT_IORING_OP_FLUSH
 {
@@ -202,7 +190,7 @@ typedef struct _NT_IORING_OP_FLUSH
     /* 0x0004 */ uint32_t Flags;
     /* 0x0008 */ NT_IORING_HANDLEREF File;
 } NT_IORING_OP_FLUSH, * PNT_IORING_OP_FLUSH; /* size: 0x0010 */
-static_assert(sizeof(NT_IORING_OP_FLUSH) == 0x0010);
+static_assert(sizeof(NT_IORING_OP_FLUSH) == 0x0010, "");
 
 typedef struct _NT_IORING_OP_RESERVED
 {
@@ -213,7 +201,7 @@ typedef struct _NT_IORING_OP_RESERVED
     /* 0x0020 */ uint64_t Argument5;
     /* 0x0028 */ uint64_t Argument6;
 } NT_IORING_OP_RESERVED, * PNT_IORING_OP_RESERVED; /* size: 0x0030 */
-static_assert(sizeof(NT_IORING_OP_RESERVED) == 0x0030);
+static_assert(sizeof(NT_IORING_OP_RESERVED) == 0x0030, "");
 
 typedef struct _NT_IORING_SQE
 {
@@ -231,7 +219,7 @@ typedef struct _NT_IORING_SQE
         /* 0x0010 */ NT_IORING_OP_RESERVED ReservedMaxSizePadding;
     }; /* size: 0x0030 */
 } NT_IORING_SQE, * PNT_IORING_SQE; /* size: 0x0040 */
-static_assert(sizeof(NT_IORING_SQE) == 0x0040);
+static_assert(sizeof(NT_IORING_SQE) == 0x0040, "");
 
 typedef enum _IORING_VERSION
 {
@@ -258,7 +246,7 @@ typedef struct _NT_IORING_CREATE_FLAGS
     /* 0x0000 */ NT_IORING_CREATE_REQUIRED_FLAGS Required;
     /* 0x0004 */ NT_IORING_CREATE_ADVISORY_FLAGS Advisory;
 } NT_IORING_CREATE_FLAGS; /* size: 0x0008 */
-static_assert(sizeof(NT_IORING_CREATE_FLAGS) == 0x0008);
+static_assert(sizeof(NT_IORING_CREATE_FLAGS) == 0x0008, "");
 
 typedef enum _NT_IORING_SQ_FLAGS
 {
@@ -273,7 +261,7 @@ typedef struct _NT_IORING_SUBMISSION_QUEUE
     /* 0x0008 */ NT_IORING_SQ_FLAGS Flags;
     /* 0x0010 */ NT_IORING_SQE Entries[];
 } NT_IORING_SUBMISSION_QUEUE, * PNT_IORING_SUBMISSION_QUEUE; /* size: 0x0010 */
-static_assert (sizeof (NT_IORING_SUBMISSION_QUEUE) == 0x0010);
+static_assert (sizeof (NT_IORING_SUBMISSION_QUEUE) == 0x0010, "");
 
 typedef struct _NT_IORING_CQE
 {
@@ -285,7 +273,7 @@ typedef struct _NT_IORING_CQE
     }; /* size: 0x0008 */
     /* 0x0010 */ uint64_t Information;
 } NT_IORING_CQE, * PNT_IORING_CQE; /* size: 0x0018 */
-static_assert(sizeof(NT_IORING_CQE) == 0x0018);
+static_assert(sizeof(NT_IORING_CQE) == 0x0018, "");
 
 typedef struct _NT_IORING_COMPLETION_QUEUE
 {
@@ -293,7 +281,7 @@ typedef struct _NT_IORING_COMPLETION_QUEUE
     /* 0x0004 */ uint32_t Tail;
     /* 0x0008 */ NT_IORING_CQE Entries[];
 } NT_IORING_COMPLETION_QUEUE, * PNT_IORING_COMPLETION_QUEUE; /* size: 0x0008 */
-static_assert (sizeof (NT_IORING_COMPLETION_QUEUE) == 0x0008);
+static_assert (sizeof (NT_IORING_COMPLETION_QUEUE) == 0x0008, "");
 
 typedef struct _NT_IORING_INFO
 {
@@ -312,7 +300,7 @@ typedef struct _NT_IORING_INFO
         /* 0x0028 */ uint64_t PadX86_CompletionQueue;
     }; /* size: 0x0008 */
 } NT_IORING_INFO, * PNT_IORING_INFO; /* size: 0x0030 */
-static_assert (sizeof (NT_IORING_INFO) == 0x0030);
+static_assert (sizeof (NT_IORING_INFO) == 0x0030, "");
 
 typedef struct _NT_IORING_STRUCTV1 {
     IORING_VERSION IoRingVersion;
@@ -341,7 +329,7 @@ typedef enum _NT_IORING_INFO_CLASS {
     IoRingInvalid = 0,
     IoRingRegisterUserCompletionEventClass = 1,
 } NT_IORING_INFO_CLASS;
-static_assert (sizeof (NT_IORING_INFO_CLASS) == 4);
+static_assert (sizeof (NT_IORING_INFO_CLASS) == 4, "");
 
 //
 // Function definitions
@@ -380,7 +368,9 @@ NtSetInformationIoRing(
     _In_ void * IoRingInformation
 );
 
-EXTERN_C_END
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef _MSC_VER
 #   pragma comment(lib, "ntdll")
