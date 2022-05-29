@@ -77,6 +77,7 @@ static void queue_read_write_pair(win_ring* ring, uint64_t offset, uint32_t buf_
             buf_size,
             offset ,
             NT_IORING_OP_FLAG_REGISTERED_FILE | NT_IORING_OP_FLAG_REGISTERED_BUFFER);
+        win_ring_sqe_set_flags(sqe, NT_IORING_SQE_FLAG_DRAIN_PRECEDING_OPS);
     }
     {
         win_ring_sqe* sqe = win_ring_get_sqe(ring);

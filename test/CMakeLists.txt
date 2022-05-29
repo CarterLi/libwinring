@@ -1,0 +1,5 @@
+add_executable(debugInfo "test/debugInfo.cpp")
+add_executable(read "test/read.cpp")
+add_executable(write "test/write.cpp")
+add_executable(event "test/event.cpp")
+add_executable(console "test/console.cpp")

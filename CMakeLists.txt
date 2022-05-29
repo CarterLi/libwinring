@@ -18,25 +18,8 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-O3")
 
 # add the executable
-add_executable(bench test/bench.cpp)
-add_executable(main test/main.cpp)
-add_executable(cp test/cp.c)
+include("test/CMakeLists.txt")
+include("demo/CMakeLists.txt")
 
-target_include_directories(bench PUBLIC
-                           "include"
-                           )
-target_link_libraries(bench PUBLIC
-                     "ntdll"
-                     )
-target_include_directories(main PUBLIC
-                           "include"
-                           )
-target_link_libraries(main PUBLIC
-                     "ntdll"
-                     )
-target_include_directories(cp PUBLIC
-                           "include"
-                           )
-target_link_libraries(cp PUBLIC
-                     "ntdll"
-                     )
+include_directories("include")
+link_libraries("ntdll")
