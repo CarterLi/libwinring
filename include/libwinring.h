@@ -107,7 +107,6 @@ static inline void win_ring_prep_cancel(
     _Inout_ win_ring_sqe* sqe,
     _In_ NT_IORING_HANDLEREF file,
     _In_ uint64_t cancelId, // ???
-    _In_ void* userDataToCancel,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
