@@ -168,17 +168,10 @@ typedef struct _NT_IORING_OP_CANCEL
 } NT_IORING_OP_CANCEL, * PNT_IORING_OP_CANCEL; /* size: 0x0018 */
 static_assert (sizeof(NT_IORING_OP_CANCEL) == 0x0018, "");
 
-typedef enum _NT_WRITE_FLAGS
-{
-    NT_WRITE_FLAG_NONE = 0,
-    NT_WRITE_FLAG_WRITE_THROUGH = 1,
-} NT_WRITE_FLAGS;
-DEFINE_ENUM_FLAG_OPERATORS(NT_WRITE_FLAGS);
-
 typedef struct _NT_IORING_OP_WRITE
 {
     /* 0x0000 */ NT_IORING_OP_FLAGS CommonOpFlags;
-    /* 0x0004 */ NT_WRITE_FLAGS Flags;
+    /* 0x0004 */ FILE_WRITE_FLAGS Flags;
     /* 0x0008 */ NT_IORING_HANDLEREF File;
     /* 0x0010 */ NT_IORING_BUFFERREF Buffer;
     /* 0x0018 */ uint64_t Offset;
@@ -190,7 +183,7 @@ static_assert (sizeof(NT_IORING_OP_WRITE) == 0x0028, "");
 typedef struct _NT_IORING_OP_FLUSH
 {
     /* 0x0000 */ NT_IORING_OP_FLAGS CommonOpFlags;
-    /* 0x0004 */ uint32_t Flags;
+    /* 0x0004 */ FILE_FLUSH_MODE FlushMode;
     /* 0x0008 */ NT_IORING_HANDLEREF File;
 } NT_IORING_OP_FLUSH, * PNT_IORING_OP_FLUSH; /* size: 0x0010 */
 static_assert (sizeof(NT_IORING_OP_FLUSH) == 0x0010, "");

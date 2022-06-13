@@ -41,7 +41,7 @@ static inline int win_ring_queue_init(
     return win_ring_check_kernel_error(status);
 }
 
-static inline int win_ring_queue_exit(_In_ win_ring* ring) {
+static inline int win_ring_queue_exit(_In_ _Post_ptr_invalid_ win_ring* ring) {
     NTSTATUS status = NtClose(ring->handle);
     return win_ring_check_kernel_error(status);
 }
@@ -106,14 +106,14 @@ static inline void win_ring_prep_register_buffers(
 static inline void win_ring_prep_cancel(
     _Inout_ win_ring_sqe* sqe,
     _In_ NT_IORING_HANDLEREF file,
-    _In_ uint64_t cancelId, // ???
+    _In_ uint64_t opToCancel,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
     sqe->OpCode = IORING_OP_CANCEL;
     sqe->Cancel.CommonOpFlags = commonOpFlags;
     sqe->Cancel.File = file;
-    sqe->Cancel.CancelId = cancelId;
+    sqe->Cancel.CancelId = opToCancel;
 }
 
 static inline void win_ring_prep_write(
@@ -122,7 +122,7 @@ static inline void win_ring_prep_write(
     _In_ NT_IORING_BUFFERREF buffer,
     _In_ uint32_t sizeToWrite,
     _In_ uint64_t fileOffset,
-    _In_ NT_WRITE_FLAGS flags,
+    _In_ FILE_WRITE_FLAGS flags,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
@@ -138,13 +138,13 @@ static inline void win_ring_prep_write(
 static inline void win_ring_prep_flush(
     _Inout_ win_ring_sqe* sqe,
     _In_ NT_IORING_HANDLEREF file,
-    _In_ uint32_t flags,
+    _In_ FILE_FLUSH_MODE flushMode,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
     sqe->OpCode = IORING_OP_FLUSH;
     sqe->Flush.CommonOpFlags = commonOpFlags;
-    sqe->Flush.Flags = flags;
+    sqe->Flush.FlushMode = flushMode;
     sqe->Flush.File = file;
 }
 

@@ -88,7 +88,7 @@ static void queue_read_write_pair(win_ring* ring, uint64_t offset, uint32_t buf_
             (NT_IORING_BUFFERREF) { .FixedBuffer = { .BufferIndex = 0, .Offset = 0 } },
             buf_size,
             offset,
-            NT_WRITE_FLAG_NONE,
+            FILE_WRITE_FLAGS_NONE,
             NT_IORING_OP_FLAG_REGISTERED_FILE | NT_IORING_OP_FLAG_REGISTERED_BUFFER);
         win_ring_sqe_set_flags(sqe, NT_IORING_SQE_FLAG_DRAIN_PRECEDING_OPS);
     }

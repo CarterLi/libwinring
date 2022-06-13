@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+set (CMAKE_SYSTEM_VERSION 10.0 (latest installed version))
+
 # set the project name
 project(libwinring-demo)
 

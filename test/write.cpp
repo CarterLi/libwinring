@@ -24,7 +24,7 @@ int main() {
         buf,
         sizeof(buf),
         0,
-        NT_WRITE_FLAG_NONE,
+        FILE_WRITE_FLAGS_NONE,
         NT_IORING_OP_FLAG_NONE
     );
     win_ring_sqe_set_data64(sqe, 0x12345678DEADBEEF);
