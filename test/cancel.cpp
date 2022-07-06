@@ -39,17 +39,32 @@ int main() {
 
     auto* sqe = win_ring_get_sqe(&ring);
     win_ring_prep_read(sqe, hPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE);
-    panic_on_error(win_ring_submit_and_wait(&ring, 1));
+    win_ring_sqe_set_data64(sqe, 10);
+    panic_on_error(win_ring_submit(&ring));
+
+    sqe = win_ring_get_sqe(&ring);
+    win_ring_prep_read(sqe, hPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE);
+    win_ring_sqe_set_data64(sqe, 20);
+    panic_on_error(win_ring_submit(&ring));
+
+    sqe = win_ring_get_sqe(&ring);
+    win_ring_prep_cancel(sqe, hPipe, 0, NT_IORING_OP_FLAG_NONE);
+    win_ring_sqe_set_data64(sqe, 100);
+    panic_on_error(win_ring_submit(&ring));
+
     puts("Reading pipe!");
 
     unsigned head;
     win_ring_cqe* cqe;
     win_ring_for_each_cqe(&ring, head, cqe) {
-        panic_on_error(cqe->ResultCode);
-        printf("%u %llu %s\n", (unsigned)cqe->Information, cqe->UserData, str);
+        if (cqe->UserData == 100) {
+            assert(SUCCEEDED(cqe->ResultCode));
+        }
+        else {
+            assert(FAILED(cqe->ResultCode));
+        }
     }
-
-    clear_cqes(&ring, "read");
+    win_ring_cq_clear(&ring);
 
     win_ring_queue_exit(&ring);
 

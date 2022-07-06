@@ -99,15 +99,18 @@ static inline void win_ring_prep_register_buffers(
 
 static inline void win_ring_prep_cancel(
     _Inout_ win_ring_sqe* sqe,
+    // file handle to be canceled
     _In_ NT_IORING_HANDLEREF file,
-    _In_ uint64_t opToCancel,
+    // user data of the operation to be canceled
+    // or 0 to cancel all operations associated with the file handle
+    _In_opt_ uint64_t cancelId,
     _In_ NT_IORING_OP_FLAGS commonOpFlags
 ) {
     memset(sqe, 0, sizeof (*sqe));
     sqe->OpCode = IORING_OP_CANCEL;
     sqe->Cancel.CommonOpFlags = commonOpFlags;
     sqe->Cancel.File = file;
-    sqe->Cancel.CancelId = opToCancel;
+    sqe->Cancel.CancelId = cancelId;
 }
 
 static inline void win_ring_prep_write(
