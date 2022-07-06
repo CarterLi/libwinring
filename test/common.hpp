@@ -17,7 +17,26 @@ static void panic() {
         NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf, (sizeof(buf) / sizeof(*buf)), NULL);
     printf("ERROR: %s", buf);
-    exit(1);
+    abort();
+}
+
+DWORD Win32FromHResult(HRESULT hr) {
+    if ((hr & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
+        return HRESULT_CODE(hr);
+    }
+
+    if (hr == S_OK) {
+        return ERROR_SUCCESS;
+    }
+
+    // Not a Win32 HRESULT so return a generic error code.
+    return ERROR_CAN_NOT_COMPLETE;
+}
+
+inline void panic_on_error(HRESULT hRes) {
+    if (SUCCEEDED(hRes)) return;
+    SetLastError(Win32FromHResult(hRes));
+    panic();
 }
 
 struct win_ring_cqe_iterator {
@@ -50,7 +69,7 @@ static void clear_cqes(win_ring* ring, const char* str) {
     win_ring_submit_and_wait(ring, -1);
 
     for (auto* cqe : ring) {
-        if (!SUCCEEDED(cqe->ResultCode)) exit(1);
+        panic_on_error(cqe->ResultCode);
         printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, str);
     }
 

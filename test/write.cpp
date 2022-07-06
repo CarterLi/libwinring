@@ -12,7 +12,7 @@ int main() {
     if (hFile == INVALID_HANDLE_VALUE) panic();
 
     win_ring ring;
-    if (win_ring_queue_init(32, &ring) < 0) panic();
+    panic_on_error(win_ring_queue_init(32, &ring));
 
     char buf[] = "1234567890-=";
     win_ring_sqe* sqe;
@@ -28,7 +28,7 @@ int main() {
         NT_IORING_OP_FLAG_NONE
     );
     win_ring_sqe_set_data64(sqe, 0x12345678DEADBEEF);
-    if (win_ring_submit(&ring) < 0) panic();
+    panic_on_error(win_ring_submit(&ring));
 
     clear_cqes(&ring, "write");
 

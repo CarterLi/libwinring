@@ -2,7 +2,7 @@
 
 int main() {
     win_ring ring;
-    if (win_ring_queue_init(32, &ring) < 0) panic();
+    panic_on_error(win_ring_queue_init(32, &ring));
 
     char str[128] = "";
 

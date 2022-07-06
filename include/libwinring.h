@@ -16,15 +16,9 @@ typedef NT_IORING_SQE win_ring_sqe;
 typedef NT_IORING_CQE win_ring_cqe;
 typedef NT_IORING_CAPABILITIES win_ring_capabilities;
 
-static inline int win_ring_check_kernel_error(_In_ NTSTATUS status) {
-    if (NT_SUCCESS(status)) return 0;
-    SetLastError(RtlNtStatusToDosError(status));
-    return -1;
-}
-
 // See https://github.com/axboe/liburing/blob/master/src/include/liburing.h to find some documents
 
-static inline int win_ring_queue_init(
+static inline HRESULT win_ring_queue_init(
     _In_ uint32_t entries,
     _Out_ struct win_ring* ring
 ) {
@@ -38,17 +32,17 @@ static inline int win_ring_queue_init(
         }
     };
     NTSTATUS status = NtCreateIoRing(&ring->handle, sizeof (ioringStruct), &ioringStruct, sizeof (ring->info), &ring->info);
-    return win_ring_check_kernel_error(status);
+    return HRESULT_FROM_NT(status);
 }
 
-static inline int win_ring_queue_exit(_In_ _Post_ptr_invalid_ win_ring* ring) {
+static inline HRESULT win_ring_queue_exit(_In_ _Post_ptr_invalid_ win_ring* ring) {
     NTSTATUS status = NtClose(ring->handle);
-    return win_ring_check_kernel_error(status);
+    return HRESULT_FROM_NT(status);
 }
 
-static inline int win_ring_query_capabilities(_Out_ win_ring_capabilities* capabilities) {
+static inline HRESULT win_ring_query_capabilities(_Out_ win_ring_capabilities* capabilities) {
     NTSTATUS status = NtQueryIoRingCapabilities(sizeof (*capabilities), capabilities);
-    return win_ring_check_kernel_error(status);
+    return HRESULT_FROM_NT(status);
 }
 
 static inline void win_ring_prep_nop(_Inout_ win_ring_sqe* sqe) {
@@ -178,18 +172,20 @@ static inline win_ring_sqe* win_ring_get_sqe(_Inout_ win_ring* ring) {
     return sqe;
 }
 
-static inline int win_ring_submit_and_wait_timeout(_Inout_ win_ring* ring, _In_ uint32_t numberOfEntries, _In_ uint64_t timeout) {
-    NTSTATUS status = NtSubmitIoRing(ring->handle, NT_IORING_CREATE_REQUIRED_FLAG_NONE, numberOfEntries, &timeout);
-    return win_ring_check_kernel_error(status);
+static inline HRESULT win_ring_submit_and_wait_timeout(_Inout_ win_ring* ring, _In_ uint32_t numberOfEntries, _In_ uint64_t timeout) {
+    NTSTATUS status = NtSubmitIoRing(ring->handle,
+        NT_IORING_CREATE_REQUIRED_FLAG_NONE,
+        numberOfEntries,
+        numberOfEntries == 0 || timeout == INFINITE ? NULL : &timeout);
+    return HRESULT_FROM_NT(status);
 }
 
-static inline int win_ring_submit_and_wait(_Inout_ win_ring* ring, _In_ uint32_t numberOfEntries) {
+static inline HRESULT win_ring_submit_and_wait(_Inout_ win_ring* ring, _In_ uint32_t numberOfEntries) {
     return win_ring_submit_and_wait_timeout(ring, numberOfEntries, INFINITE);
 }
 
-static inline int win_ring_submit(_Inout_ win_ring* ring) {
-    NTSTATUS status = NtSubmitIoRing(ring->handle, NT_IORING_CREATE_REQUIRED_FLAG_NONE, 0, NULL);
-    return win_ring_check_kernel_error(status);
+static inline HRESULT win_ring_submit(_Inout_ win_ring* ring) {
+    return win_ring_submit_and_wait_timeout(ring, 0, 0);
 }
 
 // Do we need atomic operations?
@@ -246,9 +242,9 @@ static inline void win_ring_cqe_seen(_Inout_ win_ring* ring, _In_ win_ring_cqe* 
     if (cqe) win_ring_cq_advance(ring, 1);
 }
 
-static inline int win_ring_register_event(_Inout_ win_ring* ring, _In_ HANDLE event) {
+static inline HRESULT win_ring_register_event(_Inout_ win_ring* ring, _In_ HANDLE event) {
     NTSTATUS status = NtSetInformationIoRing(ring->handle, IoRingRegisterUserCompletionEventClass, sizeof event, &event);
-    return win_ring_check_kernel_error(status);
+    return HRESULT_FROM_NT(status);
 }
 
 #ifdef __cplusplus

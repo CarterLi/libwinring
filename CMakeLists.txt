@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 set (CMAKE_SYSTEM_VERSION 10.0 (latest installed version))
+set (CMAKE_WINDOWS_KITS_10_DIR "C:/Program Files (x86)/Windows Kits/10")
 
 # set the project name
 project(libwinring-demo)

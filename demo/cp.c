@@ -9,22 +9,42 @@
 #define BS	(32*1024)
 
 noreturn
-void panic() {
+static void panic() {
     char buf[256] = "";
     FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf, (sizeof(buf) / sizeof(*buf)), NULL);
     printf("ERROR: %s", buf);
-    exit(1);
+    abort();
+}
+
+DWORD Win32FromHResult(HRESULT hr) {
+    if ((hr & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
+        return HRESULT_CODE(hr);
+    }
+
+    if (hr == S_OK) {
+        return ERROR_SUCCESS;
+    }
+
+    // Not a Win32 HRESULT so return a generic error code.
+    return ERROR_CAN_NOT_COMPLETE;
+}
+
+inline void panic_on_error(HRESULT hRes) {
+    if (SUCCEEDED(hRes)) return;
+
+    SetLastError(Win32FromHResult(hRes));
+    panic();
 }
 
 static void clear_cqes(win_ring* ring, const char str[]) {
-    win_ring_submit_and_wait(ring, -1);
+    panic_on_error(win_ring_submit_and_wait(ring, -1));
 
     unsigned head;
     win_ring_cqe* cqe;
     win_ring_for_each_cqe(ring, head, cqe) {
-        if (!SUCCEEDED(cqe->ResultCode)) exit(1);
+        panic_on_error(cqe->ResultCode);
         printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, str);
     }
     win_ring_cq_clear(ring);
@@ -145,8 +165,7 @@ int main(int argc, const char* argv[]) {
     if (outfd == INVALID_HANDLE_VALUE) panic();
 
     win_ring ring;
-
-    if (win_ring_queue_init(32, &ring) < 0) panic();
+    panic_on_error(win_ring_queue_init(32, &ring));
 
     register_files_bufs(&ring, infd, outfd);
 

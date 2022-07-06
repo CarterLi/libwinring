@@ -12,7 +12,7 @@ int main() {
     if (hFile == INVALID_HANDLE_VALUE) panic();
 
     win_ring ring;
-    if (win_ring_queue_init(32, &ring) < 0) panic();
+    panic_on_error(win_ring_queue_init(32, &ring));
 
     win_ring_sqe* sqe;
 
@@ -21,14 +21,14 @@ int main() {
     sqe = win_ring_get_sqe(&ring);
     win_ring_prep_register_files(sqe, &hFile, 1, {}, NT_IORING_OP_FLAG_NONE);
     sqe->UserData = 140;
-    if (win_ring_submit_and_wait(&ring, 1) < 0) panic();
+    panic_on_error(win_ring_submit_and_wait(&ring, 1));
 
     clear_cqes(&ring, "register");
 
     sqe = win_ring_get_sqe(&ring);
     IORING_BUFFER_INFO bufferInfo = { .Address = buf4fixed, .Length = 32 };
     win_ring_prep_register_buffers(sqe, &bufferInfo, 1, {}, NT_IORING_OP_FLAG_NONE);
-    if (win_ring_submit(&ring) < 0) panic();
+    panic_on_error(win_ring_submit(&ring));
 
     clear_cqes(&ring, "register");
 
@@ -54,7 +54,7 @@ int main() {
     unsigned head;
     win_ring_cqe* cqe;
     win_ring_for_each_cqe(&ring, head, cqe) {
-        if (!SUCCEEDED(cqe->ResultCode)) return 1;
+        panic_on_error(cqe->ResultCode);
         if (cqe->Information == 8) {
             printf("%u %llu %s\n", (unsigned)cqe->Information, cqe->UserData, buf4normal);
         } else {

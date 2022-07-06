@@ -2,7 +2,7 @@
 
 int main() {
     win_ring_capabilities capabilities;
-    if (win_ring_query_capabilities(&capabilities) < 0) panic();
+    panic_on_error(win_ring_query_capabilities(&capabilities));
 
     printf("IoRing Version: %d\n", (int)capabilities.IoRingVersion);
     printf("Max opcode: %d\n", capabilities.MaxOpCode);
