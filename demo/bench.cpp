@@ -2,7 +2,7 @@
 #include <string_view>
 #include <thread>
 #include <cstdio>
-#include <immintrin.h>
+#include <intrin.h>
 
 #ifdef _WIN32
 #include "libwinring.h"
@@ -38,7 +38,7 @@ struct stopwatch {
 };
 
 int main() {
-    const auto iteration = 10000000;
+    const auto iteration = 10'000'000;
 
 #ifdef _WIN32
     {
@@ -87,7 +87,11 @@ int main() {
     {
         stopwatch sw("pause:");
         for (int i = 0; i < iteration; ++i) {
+#ifdef _M_ARM64
+            __yield();
+#else
             _mm_pause();
+#endif
         }
     }
 }
