@@ -157,11 +157,11 @@ static inline void win_ring_sqe_set_data64(_Inout_ win_ring_sqe* sqe, _In_ uint6
     sqe->UserData = userData;
 }
 
-static inline unsigned win_ring_sq_ready(_In_ win_ring* ring) {
+static inline unsigned win_ring_sq_ready(_In_ const win_ring* ring) {
     return ring->info.SubmissionQueue->Tail - ring->info.SubmissionQueue->Head;
 }
 
-static inline unsigned win_ring_sq_space_left(_In_ win_ring* ring) {
+static inline unsigned win_ring_sq_space_left(_In_ const win_ring* ring) {
     return ring->info.SubmissionQueueSize - win_ring_sq_ready(ring);
 }
 
@@ -200,15 +200,15 @@ static inline HRESULT win_ring_submit(_Inout_ win_ring* ring) {
     ++head \
 )
 
-static inline unsigned win_ring_cq_ready(_In_ win_ring* ring) {
+static inline unsigned win_ring_cq_ready(_In_ const win_ring* ring) {
     return ring->info.CompletionQueue->Tail - ring->info.CompletionQueue->Head;
 }
 
-static inline unsigned win_ring_cq_space_left(_In_ win_ring* ring) {
+static inline unsigned win_ring_cq_space_left(_In_ const win_ring* ring) {
     return ring->info.CompletionQueueSize - win_ring_cq_ready(ring);
 }
 
-static inline win_ring_cqe* win_ring_peek_cqe(_In_ win_ring* ring) {
+static inline win_ring_cqe* win_ring_peek_cqe(_In_ const win_ring* ring) {
     uint32_t head;
     win_ring_cqe* cqe;
     win_ring_for_each_cqe(ring, head, cqe) {
@@ -225,11 +225,11 @@ static inline win_ring_cqe* win_ring_wait_cqe(_In_ win_ring* ring) {
     return win_ring_peek_cqe(ring);
 }
 
-static inline void* win_ring_cqe_get_data(_In_ win_ring_cqe* cqe) {
+static inline void* win_ring_cqe_get_data(_In_ const win_ring_cqe* cqe) {
     return (void*)(uintptr_t)cqe->UserData;
 }
 
-static inline uint64_t win_ring_cqe_get_data64(_In_ win_ring_cqe* cqe) {
+static inline uint64_t win_ring_cqe_get_data64(_In_ const win_ring_cqe* cqe) {
     return cqe->UserData;
 }
 
