@@ -1,8 +1,7 @@
 #include "common.hpp"
 
 int main() {
-    win_ring_capabilities capabilities;
-    panic_on_error(win_ring_query_capabilities(&capabilities));
+    win_ring_capabilities capabilities = win_ring_cpp::query_capabilities();
 
     printf("IoRing Version: %d\n", (int)capabilities.IoRingVersion);
     printf("Max opcode: %d\n", capabilities.MaxOpCode);

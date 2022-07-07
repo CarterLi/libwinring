@@ -11,32 +11,28 @@ int main() {
 
     if (hFile == INVALID_HANDLE_VALUE) panic();
 
-    win_ring ring;
-    panic_on_error(win_ring_queue_init(32, &ring));
-
-    win_ring_sqe* sqe;
+    win_ring_cpp ring(32);
 
     char buf4normal[32] = "", buf4fixed[32] = "";
 
-    sqe = win_ring_get_sqe(&ring);
-    win_ring_prep_register_files(sqe, &hFile, 1, {}, NT_IORING_OP_FLAG_NONE);
-    sqe->UserData = 140;
-    panic_on_error(win_ring_submit_and_wait(&ring, 1));
+    ring.get_sqe()
+        ->prep_register_files(&hFile, 1, {}, NT_IORING_OP_FLAG_NONE)
+        ->set_data64(140);
+    ring.submit_and_wait(1);
 
     clear_cqes(&ring, "register");
 
-    sqe = win_ring_get_sqe(&ring);
     IORING_BUFFER_INFO bufferInfo = { .Address = buf4fixed, .Length = 32 };
-    win_ring_prep_register_buffers(sqe, &bufferInfo, 1, {}, NT_IORING_OP_FLAG_NONE);
-    panic_on_error(win_ring_submit(&ring));
+    ring.get_sqe()
+        ->prep_register_buffers(&bufferInfo, 1, {}, NT_IORING_OP_FLAG_NONE);
+    ring.submit_and_wait(1);
 
     clear_cqes(&ring, "register");
 
     for (int x = 0; x < 2; ++x) {
-        sqe = win_ring_get_sqe(&ring);
+        auto sqe = ring.get_sqe();
         if (x & 1) {
-            win_ring_prep_read(
-                sqe,
+            sqe->prep_read(
                 0u,
                 IORING_REGISTERED_BUFFER{ .BufferIndex = 0, .Offset = 0 },
                 8,
@@ -44,27 +40,23 @@ int main() {
                 NT_IORING_OP_FLAG_REGISTERED_FILE | NT_IORING_OP_FLAG_REGISTERED_BUFFER
             );
         } else {
-            win_ring_prep_read(sqe, hFile, buf4normal, 16, 0, NT_IORING_OP_FLAG_NONE);
+            sqe->prep_read(hFile, buf4normal, 16, 0, NT_IORING_OP_FLAG_NONE);
         }
-        sqe->UserData = x * 100;
+        sqe->set_data64(x * 100);
     }
 
-    if (win_ring_submit_and_wait(&ring, 1) < 0) panic();
+    ring.submit_and_wait(1);
 
-    unsigned head;
-    win_ring_cqe* cqe;
-    win_ring_for_each_cqe(&ring, head, cqe) {
-        panic_on_error(cqe->ResultCode);
+    for (auto* cqe : ring) {
+        throw_on_error(cqe->ResultCode);
         if (cqe->Information == 8) {
             printf("%u %llu %s\n", (unsigned)cqe->Information, cqe->UserData, buf4normal);
-        } else {
+        }
+        else {
             printf("%u %llu %s\n", (unsigned)cqe->Information, cqe->UserData,
                 buf4fixed);
         }
     }
-    win_ring_cq_clear(&ring);
 
     CloseHandle(hFile);
-    win_ring_queue_exit(&ring);
-    return 0;
 }

@@ -10,8 +10,7 @@ void createClient(HANDLE hWritePipe) {
 }
 
 int main() {
-    win_ring ring;
-    if (win_ring_queue_init(32, &ring) < 0) panic();
+    win_ring_cpp ring(32);
 
     HANDLE hReadPipe, hWritePipe;
     CreatePipe(&hReadPipe, &hWritePipe, nullptr, 512);
@@ -20,38 +19,34 @@ int main() {
 
     char str[128] = "";
 
-    auto* sqe = win_ring_get_sqe(&ring);
-    win_ring_prep_read(sqe, hReadPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE);
-    win_ring_sqe_set_data64(sqe, 10);
-    panic_on_error(win_ring_submit(&ring));
+    ring.get_sqe()
+        ->prep_read(hReadPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE)
+        ->set_data64(10);
+    ring.submit();
 
-    sqe = win_ring_get_sqe(&ring);
-    win_ring_prep_read(sqe, hReadPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE);
-    win_ring_sqe_set_data64(sqe, 20);
-    panic_on_error(win_ring_submit(&ring));
+    ring.get_sqe()
+        ->prep_read(hReadPipe, str, sizeof str, 0, NT_IORING_OP_FLAG_NONE)
+        ->set_data64(20);
+    ring.submit();
 
-    sqe = win_ring_get_sqe(&ring);
-    win_ring_prep_cancel(sqe, hReadPipe, 0, NT_IORING_OP_FLAG_NONE);
-    win_ring_sqe_set_data64(sqe, 100);
-    panic_on_error(win_ring_submit(&ring));
+    ring.get_sqe()
+        ->prep_cancel(hReadPipe, 0, NT_IORING_OP_FLAG_NONE)
+        ->set_data64(100);
+    ring.submit();
 
     puts("Reading pipe!");
 
-    for (auto* cqe : &ring) {
-        if (cqe->UserData == 100) {
-            assert(SUCCEEDED(cqe->ResultCode));
+    for (auto* cqe : ring) {
+        if (cqe->get_data64() == 100) {
+            throw_on_error(cqe->ResultCode);
         }
         else {
-            assert(FAILED(cqe->ResultCode));
+            if (!FAILED(cqe->ResultCode)) panic();
         }
     }
-    win_ring_cq_clear(&ring);
-
-    win_ring_queue_exit(&ring);
+    ring.cq_clear();
 
     CloseHandle(hReadPipe);
 
     t.join();
-
-    return 0;
 }

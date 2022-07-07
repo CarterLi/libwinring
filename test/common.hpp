@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <memory>
 
-#include "libwinring.h"
+#include "libwinring.hpp"
 
 #define WIDE2(x) L##x
 #define WIDE1(x) WIDE2(x)
@@ -20,58 +20,13 @@ static void panic() {
     abort();
 }
 
-DWORD Win32FromHResult(HRESULT hr) {
-    if ((hr & 0xFFFF0000) == MAKE_HRESULT(SEVERITY_ERROR, FACILITY_WIN32, 0)) {
-        return HRESULT_CODE(hr);
+static void clear_cqes(win_ring_cpp* ring, const char* str) {
+    ring->submit_and_wait(-1);
+
+    for (auto* cqe : *ring) {
+        throw_on_error(cqe->ResultCode);
+        printf("%u %llu %s\n", (unsigned)cqe->Information, cqe->get_data64(), str);
     }
 
-    if (hr == S_OK) {
-        return ERROR_SUCCESS;
-    }
-
-    // Not a Win32 HRESULT so return a generic error code.
-    return ERROR_CAN_NOT_COMPLETE;
-}
-
-inline void panic_on_error(HRESULT hRes) {
-    if (SUCCEEDED(hRes)) return;
-    SetLastError(Win32FromHResult(hRes));
-    panic();
-}
-
-struct win_ring_cqe_iterator {
-    win_ring_cqe_iterator& operator++() {
-        ++head;
-        return *this;
-    }
-
-    const win_ring_cqe* operator *() {
-        return &ring->info.CompletionQueue->Entries[head & ring->info.CompletionQueueRingMask];
-    }
-
-    bool operator !=(const win_ring_cqe_iterator& right) {
-        return head != right.head;
-    }
-
-    win_ring* ring;
-    uint32_t head;
-};
-
-win_ring_cqe_iterator begin(win_ring* ring) {
-    return { ring, ring->info.CompletionQueue->Head };
-}
-
-win_ring_cqe_iterator end(win_ring* ring) {
-    return { ring, ring->info.CompletionQueue->Tail };
-}
-
-static void clear_cqes(win_ring* ring, const char* str) {
-    win_ring_submit_and_wait(ring, -1);
-
-    for (auto* cqe : ring) {
-        panic_on_error(cqe->ResultCode);
-        printf("%u %d %s\n", (unsigned)cqe->Information, (int)cqe->UserData, str);
-    }
-
-    win_ring_cq_clear(ring);
+    ring->cq_clear();
 }
