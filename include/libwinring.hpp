@@ -17,14 +17,18 @@ DWORD Win32FromHResult(HRESULT hr) noexcept {
     return ERROR_CAN_NOT_COMPLETE;
 }
 
-inline void throw_on_error(HRESULT hr) noexcept(false) {
-    if (SUCCEEDED(hr)) [[likely]] return;
-
+[[noreturn]]
+static void throw_error(DWORD err_code) {
     char buf[256] = "";
     FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, Win32FromHResult(hr), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        nullptr, err_code, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf, (sizeof(buf) / sizeof(*buf)), nullptr);
     throw std::runtime_error(buf);
+}
+
+inline void throw_on_error(HRESULT hr) noexcept(false) {
+    if (SUCCEEDED(hr)) [[likely]] return;
+    throw_error(Win32FromHResult(hr));
 }
 
 struct win_ring_sqe_cpp : win_ring_sqe {

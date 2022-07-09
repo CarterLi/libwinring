@@ -11,10 +11,11 @@
 #define WFILE WIDE1(__FILE__)
 
 [[noreturn]]
-static void panic() {
+static void panic(DWORD dwMessageId = 0) {
+    if (dwMessageId == 0) dwMessageId = GetLastError();
     char buf[256] = "";
     FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        NULL, dwMessageId, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
         buf, (sizeof(buf) / sizeof(*buf)), NULL);
     printf("ERROR: %s", buf);
     abort();
