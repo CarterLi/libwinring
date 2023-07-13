@@ -2,12 +2,13 @@
 #include <string_view>
 #include <thread>
 #include <cstdio>
-#include <intrin.h>
 
 #ifdef _WIN32
 #include "libwinring.h"
+#include <intrin.h>
 #else
 #include <liburing.h>
+#include <immintrin.h>
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -29,7 +30,7 @@ inline __attribute__((always_inline)) void DoNotOptimize(Tp& value) {
 struct stopwatch {
     stopwatch(std::string_view str_) : str(str_) {}
     ~stopwatch() {
-        std::printf("%*s\t%lld\n", (unsigned)str.length(), str.data(), (clock::now() - start).count());
+        std::printf("%*s\t%lld\n", (unsigned)str.length(), str.data(), (long long)(clock::now() - start).count());
     }
 
     using clock = std::chrono::high_resolution_clock;
@@ -87,7 +88,7 @@ int main() {
     {
         stopwatch sw("pause:");
         for (int i = 0; i < iteration; ++i) {
-#ifdef _M_ARM64
+#if defined(_M_ARM64) || defined(__arm64__)
             __yield();
 #else
             _mm_pause();
