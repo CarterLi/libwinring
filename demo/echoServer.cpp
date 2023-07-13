@@ -5,15 +5,11 @@
 
 #include "libwinring.hpp"
 
-// Need to link with Ws2_32.lib
-#pragma comment(lib, "Ws2_32.lib")
-#pragma comment(lib, "Mswsock.lib")
-
 struct conn_info {
     uint32_t handle;
-    enum { READ, WRITE, ACCEPT } type;
+    enum { READ, WRITE } type;
 };
-static_assert(sizeof conn_info == 8);
+static_assert(sizeof (conn_info) == 8);
 
 #define MAX_CONNECTIONS 512
 #define MAX_MESSAGE_LEN 512

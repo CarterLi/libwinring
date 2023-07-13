@@ -5,7 +5,6 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include <ntstatus.h>
 #define WIN32_NO_STATUS
 #ifndef NOMINMAX
 #   define NOMINMAX 1
@@ -14,6 +13,11 @@
 #   define WIN32_LEAD_AND_MEAN 1
 #endif
 #include <Windows.h>
+#include <ntstatus.h>
+
+#ifndef _Post_ptr_invalid_
+#   define _Post_ptr_invalid_
+#endif
 
 #ifdef __cplusplus
 extern "C" {

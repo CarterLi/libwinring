@@ -31,7 +31,7 @@ DWORD Win32FromHResult(HRESULT hr) {
     return ERROR_CAN_NOT_COMPLETE;
 }
 
-inline void panic_on_error(HRESULT hRes) {
+static inline void panic_on_error(HRESULT hRes) {
     if (SUCCEEDED(hRes)) return;
 
     SetLastError(Win32FromHResult(hRes));

@@ -17,12 +17,12 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
-set(CMAKE_EXE_LINKER_FLAGS_RELEASE "-Wl,-O3")
+add_compile_definitions(_WIN32_WINNT=_WIN32_WINNT_WIN10)
+add_compile_definitions(NTDDI_VERSION=NTDDI_WIN10_NI)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--tsaware -Wl,--build-id -Wl,--subsystem,console:6.1,--major-os-version,10,--minor-os-version,0")
+link_libraries("ntdll")
 
 # add the executable
 include("test/CMakeLists.txt")
 include("demo/CMakeLists.txt")
-
 include_directories("include")
-link_libraries("ntdll")
