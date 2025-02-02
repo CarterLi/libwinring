@@ -120,8 +120,8 @@ typedef struct _NT_IORING_OP_REGISTER_FILES
     /* 0x0004 */ NT_IORING_REG_FILES_FLAGS Flags;
     /* 0x000c */ uint32_t Count;
     union {
-      /* 0x0010 */ const HANDLE* Handles;
-      /* 0x0010 */ uint64_t PadX86_Handles;
+        /* 0x0010 */ const HANDLE* Handles;
+        /* 0x0010 */ uint64_t PadX86_Handles;
     }; /* size: 0x0008 */
 } NT_IORING_OP_REGISTER_FILES, * PNT_IORING_OP_REGISTER_FILES; /* size: 0x0018 */
 static_assert (sizeof(NT_IORING_OP_REGISTER_FILES) == 0x0018, "");
@@ -158,8 +158,8 @@ typedef struct _NT_IORING_OP_REGISTER_BUFFERS
     /* 0x0004 */ NT_IORING_REG_BUFFERS_FLAGS Flags;
     /* 0x000c */ uint32_t Count;
     union {
-      /* 0x0010 */ const IORING_BUFFER_INFO* Buffers;
-      /* 0x0010 */ uint64_t PadX86_Buffers;
+        /* 0x0010 */ const IORING_BUFFER_INFO* Buffers;
+        /* 0x0010 */ uint64_t PadX86_Buffers;
     }; /* size: 0x0008 */
 } NT_IORING_OP_REGISTER_BUFFERS, * PNT_IORING_OP_REGISTER_BUFFERS; /* size: 0x0018 */
 static_assert (sizeof(NT_IORING_OP_REGISTER_BUFFERS) == 0x0018, "");
@@ -261,7 +261,7 @@ typedef struct _NT_IORING_SUBMISSION_QUEUE
     /* 0x0008 */ NT_IORING_SQ_FLAGS Flags;
     /* 0x0010 */ NT_IORING_SQE Entries[];
 } NT_IORING_SUBMISSION_QUEUE, * PNT_IORING_SUBMISSION_QUEUE; /* size: 0x0010 */
-static_assert (sizeof (NT_IORING_SUBMISSION_QUEUE) == 0x0010, "");
+static_assert (sizeof(NT_IORING_SUBMISSION_QUEUE) == 0x0010, "");
 
 typedef struct _NT_IORING_CQE
 {
@@ -269,7 +269,7 @@ typedef struct _NT_IORING_CQE
     union
     {
         /* 0x0008 */ HRESULT ResultCode;
-        /* 0x0008 */ void * Pointer;
+        /* 0x0008 */ void* Pointer;
         /* 0x0008 */ uint64_t PadX86_Pointer;
     }; /* size: 0x0008 */
     /* 0x0010 */ uint64_t Information;
@@ -282,7 +282,7 @@ typedef struct _NT_IORING_COMPLETION_QUEUE
     /* 0x0004 */ uint32_t Tail;
     /* 0x0008 */ NT_IORING_CQE Entries[];
 } NT_IORING_COMPLETION_QUEUE, * PNT_IORING_COMPLETION_QUEUE; /* size: 0x0008 */
-static_assert (sizeof (NT_IORING_COMPLETION_QUEUE) == 0x0008, "");
+static_assert (sizeof(NT_IORING_COMPLETION_QUEUE) == 0x0008, "");
 
 typedef struct _NT_IORING_INFO
 {
@@ -301,7 +301,7 @@ typedef struct _NT_IORING_INFO
         /* 0x0028 */ uint64_t PadX86_CompletionQueue;
     }; /* size: 0x0008 */
 } NT_IORING_INFO, * PNT_IORING_INFO; /* size: 0x0030 */
-static_assert (sizeof (NT_IORING_INFO) == 0x0030, "");
+static_assert (sizeof(NT_IORING_INFO) == 0x0030, "");
 
 typedef struct _NT_IORING_STRUCTV1 {
     IORING_VERSION IoRingVersion;
@@ -312,9 +312,9 @@ typedef struct _NT_IORING_STRUCTV1 {
 
 // Code used from <ntioring_x.h>
 typedef enum _IORING_FEATURE_FLAGS {
-  IORING_FEATURE_FLAGS_NONE = 0,
-  IORING_FEATURE_UM_EMULATION = 1,
-  IORING_FEATURE_SET_COMPLETION_EVENT = 2,
+    IORING_FEATURE_FLAGS_NONE = 0,
+    IORING_FEATURE_UM_EMULATION = 1,
+    IORING_FEATURE_SET_COMPLETION_EVENT = 2,
 } IORING_FEATURE_FLAGS;
 DEFINE_ENUM_FLAG_OPERATORS(IORING_FEATURE_FLAGS)
 
@@ -330,7 +330,7 @@ typedef enum _NT_IORING_INFO_CLASS {
     IoRingInvalid = 0,
     IoRingRegisterUserCompletionEventClass = 1,
 } NT_IORING_INFO_CLASS;
-static_assert (sizeof (NT_IORING_INFO_CLASS) == 4, "");
+static_assert (sizeof(NT_IORING_INFO_CLASS) == 4, "");
 
 //
 // Function definitions
@@ -343,7 +343,7 @@ NtSubmitIoRing(
     _In_ HANDLE Handle,
     _In_ NT_IORING_CREATE_REQUIRED_FLAGS Flags,
     _In_ uint32_t WaitOperations,
-    _In_opt_ uint64_t * Timeout
+    _In_opt_ uint64_t* Timeout
 );
 
 __kernel_entry extern NTSTATUS NTAPI
@@ -366,7 +366,7 @@ NtSetInformationIoRing(
     _In_ HANDLE Handle,
     _In_ NT_IORING_INFO_CLASS InformationClass,
     _In_ uint32_t InformationLength,
-    _In_ void * IoRingInformation
+    _In_ void* IoRingInformation
 );
 
 #ifdef __cplusplus
