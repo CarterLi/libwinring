@@ -35,6 +35,8 @@ typedef enum _IORING_OP_CODE
     IORING_OP_CANCEL = 4,
     IORING_OP_WRITE = 5,
     IORING_OP_FLUSH = 6,
+    IORING_OP_READ_SCATTER = 7,
+    IORING_OP_WRITE_GATHER = 8,
 } IORING_OP_CODE;
 
 typedef enum _NT_IORING_OP_FLAGS
@@ -192,6 +194,34 @@ typedef struct _NT_IORING_OP_FLUSH
 } NT_IORING_OP_FLUSH, * PNT_IORING_OP_FLUSH; /* size: 0x0010 */
 static_assert (sizeof(NT_IORING_OP_FLUSH) == 0x0010, "");
 
+typedef struct _NT_IORING_OP_READ_SCATTER
+{
+    /* 0x0000 */ NT_IORING_OP_FLAGS CommonOpFlags;
+    /* 0x0004 */ uint32_t Padding;
+    /* 0x0008 */ NT_IORING_HANDLEREF File;
+    /* 0x0010 */ uint32_t SegmentCount;
+    /* 0x0014 */ uint32_t Padding2;
+    /* 0x0018 */ FILE_SEGMENT_ELEMENT* SegmentArray;
+    /* 0x0020 */ uint64_t Offset;
+    /* 0x0028 */ uint32_t Length;
+    /* 0x002c */ uint32_t Key;
+} NT_IORING_OP_READ_SCATTER, * PNT_IORING_OP_READ_SCATTER; /* size: 0x0030 */
+static_assert (sizeof(NT_IORING_OP_READ_SCATTER) == 0x0030, "");
+
+typedef struct _NT_IORING_OP_WRITE_GATHER
+{
+    /* 0x0000 */ NT_IORING_OP_FLAGS CommonOpFlags;
+    /* 0x0004 */ FILE_WRITE_FLAGS Flags;
+    /* 0x0008 */ NT_IORING_HANDLEREF File;
+    /* 0x0010 */ uint32_t SegmentCount;
+    /* 0x0014 */ uint32_t Padding;
+    /* 0x0018 */ FILE_SEGMENT_ELEMENT* SegmentArray;
+    /* 0x0020 */ uint64_t Offset;
+    /* 0x0028 */ uint32_t Length;
+    /* 0x002c */ uint32_t Key;
+} NT_IORING_OP_WRITE_GATHER, * PNT_IORING_OP_WRITE_GATHER; /* size: 0x0030 */
+static_assert (sizeof(NT_IORING_OP_WRITE_GATHER) == 0x0030, "");
+
 typedef struct _NT_IORING_OP_RESERVED
 {
     /* 0x0000 */ uint64_t Argument1;
@@ -216,6 +246,8 @@ typedef struct _NT_IORING_SQE
         /* 0x0010 */ NT_IORING_OP_CANCEL Cancel;
         /* 0x0010 */ NT_IORING_OP_WRITE Write;
         /* 0x0010 */ NT_IORING_OP_FLUSH Flush;
+        /* 0x0010 */ NT_IORING_OP_READ_SCATTER ReadScatter;
+        /* 0x0010 */ NT_IORING_OP_WRITE_GATHER WriteGather;
         /* 0x0010 */ NT_IORING_OP_RESERVED ReservedMaxSizePadding;
     }; /* size: 0x0030 */
 } NT_IORING_SQE, * PNT_IORING_SQE; /* size: 0x0040 */
@@ -226,7 +258,8 @@ typedef enum _IORING_VERSION
     IORING_VERSION_INVALID = 0,
     IORING_VERSION_1 = 1,
     IORING_VERSION_2 = 2,
-    IORING_VERSION_3 = 300,
+    IORING_VERSION_3 = 300, /* 22H2 */
+    IORING_VERSION_4 = 400, /* 24H2 */
 } IORING_VERSION;
 
 typedef enum _NT_IORING_CREATE_REQUIRED_FLAGS
@@ -238,6 +271,7 @@ DEFINE_ENUM_FLAG_OPERATORS(NT_IORING_CREATE_REQUIRED_FLAGS);
 typedef enum _NT_IORING_CREATE_ADVISORY_FLAGS
 {
     NT_IORING_CREATE_ADVISORY_FLAG_NONE = 0,
+    NT_IORING_CREATE_SKIP_BUILDER_PARAM_CHECKS = 1,
 } NT_IORING_CREATE_ADVISORY_FLAGS;
 DEFINE_ENUM_FLAG_OPERATORS(NT_IORING_CREATE_ADVISORY_FLAGS);
 
@@ -331,6 +365,8 @@ typedef enum _NT_IORING_INFO_CLASS {
     IoRingRegisterUserCompletionEventClass = 1,
 } NT_IORING_INFO_CLASS;
 static_assert (sizeof(NT_IORING_INFO_CLASS) == 4, "");
+
+#define NT_IORING_SUBMIT_WAIT_ALL MAXUINT32
 
 //
 // Function definitions
