@@ -22,16 +22,26 @@ static inline HRESULT win_ring_queue_init(
     _In_ uint32_t entries,
     _Out_ struct win_ring* ring
 ) {
+    NT_IORING_CAPABILITIES caps;
+    NTSTATUS status = NtQueryIoRingCapabilities(sizeof (caps), &caps);
+    if (!NT_SUCCESS(status)) return HRESULT_FROM_NT(status);
+
+    if (caps.IoRingVersion < IORING_VERSION_3) return HRESULT_FROM_WIN32(ERROR_NOT_SUPPORTED);
+
     NT_IORING_STRUCTV1 ioringStruct = {
-        .IoRingVersion = IORING_VERSION_3, // Requires Win11 22H2
+        .IoRingVersion = caps.IoRingVersion,
         .SubmissionQueueSize = entries,
         .CompletionQueueSize = entries * 2,
         .Flags = {
             .Required = NT_IORING_CREATE_REQUIRED_FLAG_NONE,
+            #ifdef NDEBUG
+            .Advisory = NT_IORING_CREATE_SKIP_BUILDER_PARAM_CHECKS,
+            #else
             .Advisory = NT_IORING_CREATE_ADVISORY_FLAG_NONE,
+            #endif
         }
     };
-    NTSTATUS status = NtCreateIoRing(&ring->handle, sizeof (ioringStruct), &ioringStruct, sizeof (ring->info), &ring->info);
+    status = NtCreateIoRing(&ring->handle, sizeof (ioringStruct), &ioringStruct, sizeof (ring->info), &ring->info);
     return HRESULT_FROM_NT(status);
 }
 
