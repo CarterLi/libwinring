@@ -145,6 +145,46 @@ static inline void win_ring_prep_flush(
     sqe->Flush.File = file;
 }
 
+static inline void win_ring_prep_read_scatter(
+    _Inout_ win_ring_sqe* sqe,
+    _In_ NT_IORING_HANDLEREF file,
+    _In_reads_(segmentCount) _In_ FILE_SEGMENT_ELEMENT* segmentArray,
+    _In_ uint32_t segmentCount,
+    _In_ uint32_t sizeToRead,
+    _In_ uint64_t fileOffset,
+    _In_ NT_IORING_OP_FLAGS commonOpFlags
+) {
+    memset(sqe, 0, sizeof (*sqe));
+    sqe->OpCode = IORING_OP_READ_SCATTER;
+    sqe->ReadScatter.CommonOpFlags = commonOpFlags;
+    sqe->ReadScatter.File = file;
+    sqe->ReadScatter.SegmentArray = segmentArray;
+    sqe->ReadScatter.SegmentCount = segmentCount;
+    sqe->ReadScatter.Offset = fileOffset;
+    sqe->ReadScatter.Length = sizeToRead;
+}
+
+static inline void win_ring_prep_write_gather(
+    _Inout_ win_ring_sqe* sqe,
+    _In_ NT_IORING_HANDLEREF file,
+    _In_reads_(segmentCount) _In_ FILE_SEGMENT_ELEMENT* segmentArray,
+    _In_ uint32_t segmentCount,
+    _In_ uint32_t sizeToWrite,
+    _In_ uint64_t fileOffset,
+    _In_ FILE_WRITE_FLAGS flags,
+    _In_ NT_IORING_OP_FLAGS commonOpFlags
+) {
+    memset(sqe, 0, sizeof (*sqe));
+    sqe->OpCode = IORING_OP_WRITE_GATHER;
+    sqe->WriteGather.CommonOpFlags = commonOpFlags;
+    sqe->WriteGather.Flags = flags;
+    sqe->WriteGather.File = file;
+    sqe->WriteGather.SegmentArray = segmentArray;
+    sqe->WriteGather.SegmentCount = segmentCount;
+    sqe->WriteGather.Offset = fileOffset;
+    sqe->WriteGather.Length = sizeToWrite;
+}
+
 static inline void win_ring_sqe_set_flags(_Inout_ win_ring_sqe* sqe, _In_ NT_IORING_SQE_FLAGS flags) {
     sqe->Flags = flags;
 }

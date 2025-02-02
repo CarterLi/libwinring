@@ -101,6 +101,31 @@ struct win_ring_sqe_cpp : win_ring_sqe {
         return this;
     }
 
+    auto prep_read_scatter(
+        _In_ NT_IORING_HANDLEREF file,
+        _In_ FILE_SEGMENT_ELEMENT* segmentArray,
+        _In_ uint32_t segmentCount,
+        _In_ uint32_t sizeToRead,
+        _In_ uint64_t fileOffset,
+        _In_ NT_IORING_OP_FLAGS commonOpFlags
+    ) noexcept {
+        win_ring_prep_read_scatter(this, file, segmentArray, segmentCount, sizeToRead, fileOffset, commonOpFlags);
+        return this;
+    }
+
+    auto prep_write_gather(
+        _In_ NT_IORING_HANDLEREF file,
+        _In_ FILE_SEGMENT_ELEMENT* segmentArray,
+        _In_ uint32_t segmentCount,
+        _In_ uint32_t sizeToWrite,
+        _In_ uint64_t fileOffset,
+        _In_ FILE_WRITE_FLAGS flags,
+        _In_ NT_IORING_OP_FLAGS commonOpFlags
+    ) noexcept {
+        win_ring_prep_write_gather(this, file, segmentArray, segmentCount, sizeToWrite, fileOffset, flags, commonOpFlags);
+        return this;
+    }
+
     auto set_flags(_In_ NT_IORING_SQE_FLAGS flags) noexcept {
         win_ring_sqe_set_flags(this, flags);
         return this;
